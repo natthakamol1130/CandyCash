@@ -20,6 +20,9 @@ import {
   ReceiptText,
   Trash2,
   RotateCcw,
+  Search,
+  Sparkles,
+  TrendingDown,
 } from 'lucide-react';
 
 interface UserSession {
@@ -55,6 +58,22 @@ interface TransactionItem {
   transactionDate: string;
   wallet?: { name: string; color: string };
   category?: { name: string } | null;
+}
+
+interface BudgetTemplateItem {
+  id: string;
+  name: string;
+  description: string | null;
+  rulesJson: string;
+}
+
+interface BudgetSummary {
+  monthlyBudgetTarget: number;
+  spentThisMonth: number;
+  remainingBudget: number;
+  remainingDaysInMonth: number;
+  dailySafeToSpend: number;
+  categoryBreakdown: { categoryName: string; amount: number; percentage: number }[];
 }
 
 const COLOR_PRESETS = ['#ec4899', '#6366f1', '#10b981', '#f59e0b', '#0ea5e9', '#8b5cf6'];
@@ -120,6 +139,21 @@ export default function DashboardPage() {
   const [txAmount, setTxAmount] = useState('');
   const [txNote, setTxNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // F-06 states (Budget, Templates, Search/Filter, Admin Catalog)
+  const [budgetSummary, setBudgetSummary] = useState<BudgetSummary | null>(null);
+  const [templates, setTemplates] = useState<BudgetTemplateItem[]>([]);
+  const [budgetInput, setBudgetInput] = useState('10000');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const [filterWalletId, setFilterWalletId] = useState('');
+
+  // Admin forms
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatType, setNewCatType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
+  const [newTplName, setNewTplName] = useState('');
+  const [newTplDesc, setNewTplDesc] = useState('');
+  const [newTplBudget, setNewTplBudget] = useState('12000');
 
   const fetchSession = useCallback(async () => {
     try {
@@ -192,11 +226,44 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const fetchBudget = useCallback(async () => {
+    try {
+      const res = await fetch('/api/budget');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success) {
+        setBudgetSummary(data.data);
+        setBudgetInput(String(data.data.monthlyBudgetTarget));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const res = await fetch('/api/budget-templates');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success) {
+        setTemplates(data.data);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
-    Promise.all([fetchSession(), fetchWallets(), fetchTransactions(), fetchCategories(), fetchTrash()]).finally(() =>
-      setLoading(false)
-    );
-  }, [fetchSession, fetchWallets, fetchTransactions, fetchCategories, fetchTrash]);
+    Promise.all([
+      fetchSession(),
+      fetchWallets(),
+      fetchTransactions(),
+      fetchCategories(),
+      fetchTrash(),
+      fetchBudget(),
+      fetchTemplates(),
+    ]).finally(() => setLoading(false));
+  }, [fetchSession, fetchWallets, fetchTransactions, fetchCategories, fetchTrash, fetchBudget, fetchTemplates]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -373,13 +440,97 @@ export default function DashboardPage() {
       }
 
       setRestoreTarget(null);
-      await Promise.all([fetchWallets(), fetchTransactions(), fetchTrash()]);
+      await Promise.all([fetchWallets(), fetchTransactions(), fetchTrash(), fetchBudget()]);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const handleUpdateBudget = async (targetAmount: number) => {
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/budget', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ monthlyBudgetTarget: targetAmount }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update budget');
+      await fetchBudget();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateSystemCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCatName, type: newCatType, icon: 'tag' }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to create category');
+      setNewCatName('');
+      await fetchCategories();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateBudgetTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/budget-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newTplName,
+          description: newTplDesc,
+          rulesJson: JSON.stringify({
+            needs: 50,
+            wants: 30,
+            savings: 20,
+            recommendedMonthlyBudget: Number(newTplBudget) || 10000,
+          }),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to create template');
+      setNewTplName('');
+      setNewTplDesc('');
+      await fetchTemplates();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const filteredTransactions = transactions.filter((tx) => {
+    if (filterType !== 'ALL' && tx.type !== filterType) return false;
+    if (filterWalletId && tx.walletId !== filterWalletId) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const matchNote = (tx.note || '').toLowerCase().includes(q);
+      const matchCat = (tx.category?.name || '').toLowerCase().includes(q);
+      const matchWallet = (tx.wallet?.name || '').toLowerCase().includes(q);
+      if (!matchNote && !matchCat && !matchWallet) return false;
+    }
+    return true;
+  });
 
   const selectedWalletForTx = wallets.find((w) => w.id === txWalletId);
   const isOverdraft =
@@ -429,12 +580,117 @@ export default function DashboardPage() {
         )}
 
         {user?.role === 'ADMIN' ? (
-          <div className="rounded-2xl bg-white p-8 border border-indigo-100 shadow-sm text-center space-y-3">
-            <ShieldAlert className="w-10 h-10 text-indigo-500 mx-auto" />
-            <h2 className="text-lg font-bold text-slate-800">Admin Privacy Guard Active (BR-03)</h2>
-            <p className="text-sm text-slate-600 max-w-md mx-auto">
-              บัญชีผู้ดูแลระบบ (ADMIN) ถูกจำกัดสิทธิ์ไม่ให้เข้าถึงโฟลเดอร์และรายการเงินส่วนตัวของ USER (100% Privacy)
-            </p>
+          <div className="space-y-6">
+            <div className="rounded-2xl bg-white p-6 border border-indigo-100 shadow-sm flex items-center gap-4">
+              <ShieldAlert className="w-10 h-10 text-indigo-500 shrink-0" />
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Admin Privacy Guard Active (BR-03)</h2>
+                <p className="text-sm text-slate-600">
+                  บัญชีผู้ดูแลระบบ (ADMIN) ถูกจำกัดสิทธิ์ไม่ให้เข้าถึงโฟลเดอร์และรายการเงินส่วนตัวของ USER (100% Privacy)
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* System Categories Manager */}
+              <section className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-4">
+                <h3 className="text-base font-bold text-slate-800">
+                  จัดการหมวดหมู่กลางของระบบ ({categories.length})
+                </h3>
+                <form onSubmit={handleCreateSystemCategory} className="flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="ชื่อหมวดหมู่กลาง เช่น ค่าเดินทาง"
+                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  />
+                  <select
+                    value={newCatType}
+                    onChange={(e) => setNewCatType(e.target.value as 'EXPENSE' | 'INCOME')}
+                    className="rounded-lg border border-slate-300 px-2 py-2 text-sm bg-white"
+                  >
+                    <option value="EXPENSE">EXPENSE</option>
+                    <option value="INCOME">INCOME</option>
+                  </select>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    เพิ่ม
+                  </button>
+                </form>
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                  {categories.map((cat) => (
+                    <div key={cat.id} className="py-2 flex items-center justify-between text-sm">
+                      <span className="font-medium text-slate-700">{cat.name}</span>
+                      <span
+                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                          cat.type === 'INCOME'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-rose-50 text-rose-700'
+                        }`}
+                      >
+                        {cat.type}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Starter Budget Templates Manager */}
+              <section className="rounded-2xl bg-white p-6 border border-slate-200 shadow-sm space-y-4">
+                <h3 className="text-base font-bold text-slate-800">
+                  จัดการสูตรจัดงบแนะนำ ({templates.length})
+                </h3>
+                <form onSubmit={handleCreateBudgetTemplate} className="space-y-2">
+                  <input
+                    type="text"
+                    required
+                    value={newTplName}
+                    onChange={(e) => setNewTplName(e.target.value)}
+                    placeholder="ชื่อสูตร เช่น สูตรนักศึกษา 60/20/20"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTplDesc}
+                      onChange={(e) => setNewTplDesc(e.target.value)}
+                      placeholder="คำอธิบายสั้นๆ"
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="number"
+                      min="100"
+                      value={newTplBudget}
+                      onChange={(e) => setNewTplBudget(e.target.value)}
+                      placeholder="งบแนะนำ"
+                      className="w-28 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      สร้างสูตร
+                    </button>
+                  </div>
+                </form>
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                  {templates.map((tpl) => (
+                    <div key={tpl.id} className="py-2.5">
+                      <p className="text-sm font-semibold text-slate-800">{tpl.name}</p>
+                      {tpl.description && (
+                        <p className="text-xs text-slate-500">{tpl.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
           </div>
         ) : (
           <>
@@ -466,6 +722,103 @@ export default function DashboardPage() {
                 </button>
               </div>
             </section>
+
+            {/* Daily Safe-to-Spend & Expense Breakdown (F-06) */}
+            {budgetSummary && (
+              <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-white p-5 border border-slate-200 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      งบที่ใช้ได้วันนี้ (Daily Safe-to-Spend)
+                    </h2>
+                    <span className="text-xs text-slate-400">
+                      เหลืออีก {budgetSummary.remainingDaysInMonth} วันในเดือนนี้
+                    </span>
+                  </div>
+                  <p className="text-3xl font-bold text-emerald-600">
+                    ฿{budgetSummary.dailySafeToSpend.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                    <span className="text-xs font-normal text-slate-500"> / วัน</span>
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={budgetInput}
+                      onChange={(e) => setBudgetInput(e.target.value)}
+                      className="w-36 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                    />
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => handleUpdateBudget(Number(budgetInput))}
+                      className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-900"
+                    >
+                      ตั้งงบเดือนนี้
+                    </button>
+                    {templates.length > 0 && (
+                      <select
+                        defaultValue=""
+                        onChange={(e) => {
+                          const tpl = templates.find((t) => t.id === e.target.value);
+                          if (!tpl) return;
+                          try {
+                            const parsed = JSON.parse(tpl.rulesJson);
+                            const rec = Number(parsed.recommendedMonthlyBudget || 10000);
+                            setBudgetInput(String(rec));
+                            handleUpdateBudget(rec);
+                          } catch {
+                            handleUpdateBudget(10000);
+                          }
+                        }}
+                        className="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs bg-white"
+                      >
+                        <option value="">ใช้สูตรจัดงบจาก Admin...</option>
+                        {templates.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white p-5 border border-slate-200 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <TrendingDown className="w-4 h-4 text-rose-500" />
+                      สัดส่วนรายจ่ายเดือนนี้
+                    </h2>
+                    <span className="text-xs text-slate-500">
+                      ใช้ไป ฿{budgetSummary.spentThisMonth.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  {budgetSummary.categoryBreakdown.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-4 text-center">ยังไม่มีรายจ่ายในเดือนนี้</p>
+                  ) : (
+                    <div className="space-y-2 max-h-28 overflow-y-auto">
+                      {budgetSummary.categoryBreakdown.map((item) => (
+                        <div key={item.categoryName} className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="font-medium text-slate-700">{item.categoryName}</span>
+                            <span className="text-slate-500">
+                              ฿{item.amount.toLocaleString('th-TH')} ({item.percentage}%)
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className="h-full bg-pink-500 rounded-full"
+                              style={{ width: `${Math.min(100, item.percentage)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
 
             {/* Wallets Grid */}
             <section>
@@ -555,13 +908,48 @@ export default function DashboardPage() {
               </div>
 
               {activeTab === 'ACTIVE' ? (
-                transactions.length === 0 ? (
-                  <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-500 text-sm shadow-sm">
-                    ยังไม่มีประวัติรายการ กดปุ่ม &ldquo;จดรายรับ-รายจ่าย&rdquo; ด้านบนเพื่อบันทึกรายการแรก
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="ค้นหารายการ (โน้ต, หมวดหมู่, โฟลเดอร์)..."
+                        className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                      />
+                    </div>
+                    <select
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value as 'ALL' | 'INCOME' | 'EXPENSE')}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    >
+                      <option value="ALL">ทุกประเภท</option>
+                      <option value="INCOME">รายรับ (INCOME)</option>
+                      <option value="EXPENSE">รายจ่าย (EXPENSE)</option>
+                    </select>
+                    <select
+                      value={filterWalletId}
+                      onChange={(e) => setFilterWalletId(e.target.value)}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                    >
+                      <option value="">ทุกโฟลเดอร์</option>
+                      {wallets.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                ) : (
-                  <div className="rounded-2xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
-                    {transactions.slice(0, 10).map((tx) => (
+
+                  {filteredTransactions.length === 0 ? (
+                    <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-500 text-sm shadow-sm">
+                      ไม่พบรายการที่ตรงกับเงื่อนไข
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+                      {filteredTransactions.slice(0, 15).map((tx) => (
                       <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
                         <div className="flex items-center gap-3">
                           <div
@@ -620,7 +1008,8 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
-                )
+                )}
+                </div>
               ) : (
                 trashItems.length === 0 ? (
                   <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-500 text-sm shadow-sm">
