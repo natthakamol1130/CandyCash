@@ -12,6 +12,8 @@ export async function GET(req: NextRequest) {
 
   const url = req.nextUrl;
   const walletId = url.searchParams.get('walletId') || undefined;
+  const categoryId = url.searchParams.get('categoryId') || undefined;
+  const search = url.searchParams.get('search') || undefined;
   const typeParam = url.searchParams.get('type');
   const type = typeParam === 'INCOME' || typeParam === 'EXPENSE' ? typeParam : undefined;
   const startDate = url.searchParams.get('startDate') || undefined;
@@ -19,7 +21,9 @@ export async function GET(req: NextRequest) {
 
   const data = await listUserTransactions(auth.session.userId, {
     walletId,
+    categoryId,
     type,
+    search,
     startDate,
     endDate,
   });

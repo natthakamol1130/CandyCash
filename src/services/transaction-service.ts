@@ -23,7 +23,9 @@ export interface CreateTransactionInput {
 
 export interface TransactionFilterInput {
   walletId?: string;
+  categoryId?: string;
   type?: 'INCOME' | 'EXPENSE';
+  search?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -150,6 +152,10 @@ export async function listUserTransactions(userId: string, filters: TransactionF
     whereClause.walletId = filters.walletId;
   }
 
+  if (filters.categoryId) {
+    whereClause.categoryId = filters.categoryId;
+  }
+
   if (filters.type) {
     whereClause.type = filters.type;
   }
@@ -160,7 +166,7 @@ export async function listUserTransactions(userId: string, filters: TransactionF
     if (filters.endDate) whereClause.transactionDate.lte = new Date(filters.endDate);
   }
 
-  const transactions = await prisma.transaction.findMany({
+  const rawTransactions = await prisma.transaction.findMany({
     where: whereClause,
     orderBy: { transactionDate: 'desc' },
     include: {
@@ -168,6 +174,16 @@ export async function listUserTransactions(userId: string, filters: TransactionF
       wallet: true,
     },
   });
+
+  const keyword = filters.search?.trim().toLowerCase();
+  const transactions = keyword
+    ? rawTransactions.filter(
+        (t) =>
+          (t.note || '').toLowerCase().includes(keyword) ||
+          (t.category?.name || '').toLowerCase().includes(keyword) ||
+          (t.wallet?.name || '').toLowerCase().includes(keyword)
+      )
+    : rawTransactions;
 
   const totalIncome = transactions
     .filter((t) => t.type === 'INCOME')
