@@ -41,6 +41,17 @@ export async function middleware(req: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Bidirectional Role-Based Guard (BR-03): restrict personal financial routes to USER only
+    if (
+      (pathname.startsWith('/api/wallets') || pathname.startsWith('/api/transactions')) &&
+      session.role !== 'USER'
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: Personal financial access restricted to USER role' },
+        { status: 403 }
+      );
+    }
   }
 
   return NextResponse.next();

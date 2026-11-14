@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
-import { verifyPassword, signSessionToken, verifySessionToken } from '../lib/auth';
+import { verifyPassword } from '../lib/password';
+import { signSessionToken, verifySessionToken } from '../lib/auth';
 import { AuthSession } from '../lib/types';
 
 export interface LoginResult {
@@ -59,5 +60,14 @@ export function checkAdminAccess(session: AuthSession | null): void {
   }
   if (session.role !== 'ADMIN') {
     throw new Error('Forbidden: Admin access required');
+  }
+}
+
+export function checkUserAccess(session: AuthSession | null): void {
+  if (!session) {
+    throw new Error('Unauthorized: Session required');
+  }
+  if (session.role !== 'USER') {
+    throw new Error('Forbidden: Personal financial access restricted to USER role');
   }
 }

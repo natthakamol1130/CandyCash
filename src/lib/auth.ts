@@ -1,18 +1,9 @@
 import { SignJWT, jwtVerify } from 'jose';
-import bcrypt from 'bcryptjs';
 import { AuthSession } from './types';
 
 const SECRET_KEY = new TextEncoder().encode(
   process.env.JWT_SECRET || 'candycash-super-secret-jwt-key-2026-cpe334'
 );
-
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
-}
-
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
-}
 
 export async function signSessionToken(session: AuthSession): Promise<string> {
   return new SignJWT({ ...session })
@@ -31,7 +22,7 @@ export async function verifySessionToken(token: string): Promise<AuthSession | n
       fullName: payload.fullName as string,
       role: payload.role as 'USER' | 'ADMIN',
     };
-  } catch (err) {
+  } catch {
     return null;
   }
 }
