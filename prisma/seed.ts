@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding CandyCash database...');
+  console.log('[SEED] Seeding CandyCash database...');
 
   // Clean existing data for clean baseline
   await prisma.transaction.deleteMany();
@@ -51,7 +51,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Created users: user1, user2, admin');
+  console.log('[SEED] Created users: user1, user2, admin');
 
   // 2. Create System Standard Categories
   const categories = await prisma.$transaction([
@@ -63,7 +63,7 @@ async function main() {
     prisma.category.create({ data: { name: 'สุขภาพ & ยา (Health)', type: 'EXPENSE', icon: 'heart', isSystem: true } }),
   ]);
 
-  console.log(`✅ Created ${categories.length} system categories`);
+  console.log(`[SEED] Created ${categories.length} system categories`);
 
   // 3. Create Default Wallets for User 1
   const cashWallet = await prisma.wallet.create({
@@ -90,7 +90,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Created default wallets for user1');
+  console.log('[SEED] Created default wallets for user1');
 
   // 4. Create Standard Budget Templates
   await prisma.budgetTemplate.create({
@@ -102,7 +102,7 @@ async function main() {
     },
   });
 
-  console.log('🌱 Seeding completed successfully!');
+  console.log('[SEED] Seeding completed successfully!');
 }
 
 main()

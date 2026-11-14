@@ -39,7 +39,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg border border-pink-100">
         <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🍬</div>
           <h1 className="text-2xl font-bold text-slate-800">เข้าสู่ระบบ CandyCash</h1>
           <p className="text-sm text-slate-500 mt-1">ระบบบันทึกรายรับ-รายจ่ายส่วนตัว</p>
         </div>
