@@ -247,7 +247,15 @@ describe('F-04: Self-Service Double-Check Move & Cancel Transaction', () => {
       expect(wB?.balance).toBe(1000.0);
 
       // Duplicate cancel must return 409 INVALID_TRANSACTION_STATE
-      const dupRes = await cancelTransactionRoute(req, { params: { id: expenseTxId } });
+      const dupReq = new NextRequest(`http://localhost:3000/api/transactions/${expenseTxId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cookie: `candycash_session=${user1Token}`,
+        },
+        body: JSON.stringify({ confirmed: true }),
+      });
+      const dupRes = await cancelTransactionRoute(dupReq, { params: { id: expenseTxId } });
       expect(dupRes.status).toBe(409);
       const dupJson = await dupRes.json();
       expect(dupJson.code).toBe('INVALID_TRANSACTION_STATE');

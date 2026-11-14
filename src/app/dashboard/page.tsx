@@ -16,7 +16,9 @@ import {
   Wallet as WalletIcon,
   ArrowDownLeft,
   ArrowUpRight,
+  ArrowLeftRight,
   ReceiptText,
+  Trash2,
 } from 'lucide-react';
 
 interface UserSession {
@@ -96,6 +98,9 @@ export default function DashboardPage() {
   const [showCreateWallet, setShowCreateWallet] = useState(false);
   const [showCreateTx, setShowCreateTx] = useState(false);
   const [archiveTarget, setArchiveTarget] = useState<WalletItem | null>(null);
+  const [moveTarget, setMoveTarget] = useState<TransactionItem | null>(null);
+  const [moveTargetWalletId, setMoveTargetWalletId] = useState('');
+  const [cancelTarget, setCancelTarget] = useState<TransactionItem | null>(null);
 
   // Form states - Create Wallet
   const [name, setName] = useState('');
@@ -268,6 +273,64 @@ export default function DashboardPage() {
 
       setArchiveTarget(null);
       await fetchWallets();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openMoveModal = (tx: TransactionItem) => {
+    const otherWallet = wallets.find((w) => w.id !== tx.walletId);
+    setMoveTargetWalletId(otherWallet?.id || '');
+    setMoveTarget(tx);
+  };
+
+  const handleConfirmMove = async () => {
+    if (!moveTarget || !moveTargetWalletId) return;
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/transactions/${moveTarget.id}/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetWalletId: moveTargetWalletId, confirmed: true }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to move transaction');
+      }
+
+      setMoveTarget(null);
+      await Promise.all([fetchWallets(), fetchTransactions()]);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelTarget) return;
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/transactions/${cancelTarget.id}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmed: true }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to cancel transaction');
+      }
+
+      setCancelTarget(null);
+      await Promise.all([fetchWallets(), fetchTransactions()]);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -455,16 +518,38 @@ export default function DashboardPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-sm font-bold ${
-                            tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
-                          }`}
-                        >
-                          {tx.type === 'INCOME' ? '+' : '-'}฿
-                          {Number(tx.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                        </p>
-                        <span className="text-[10px] text-slate-400 font-medium">สำเร็จ</span>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p
+                            className={`text-sm font-bold ${
+                              tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
+                            }`}
+                          >
+                            {tx.type === 'INCOME' ? '+' : '-'}฿
+                            {Number(tx.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                          </p>
+                          <span className="text-[10px] text-slate-400 font-medium">สำเร็จ</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {wallets.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => openMoveModal(tx)}
+                              title="ย้ายโฟลเดอร์ (Double-Check Move)"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                            >
+                              <ArrowLeftRight className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setCancelTarget(tx)}
+                            title="ยกเลิกรายการลงถังขยะ (Double-Check Cancel)"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -692,6 +777,130 @@ export default function DashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Double-Check Move Transaction Modal (F-04 / BR-04) */}
+      {moveTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-slate-800">
+              ยืนยันการย้ายรายการข้ามโฟลเดอร์ (Double-Check)
+            </h3>
+            <p className="text-sm text-slate-600">
+              ย้ายรายการ{' '}
+              <strong>
+                {moveTarget.type === 'INCOME' ? 'รายรับ' : 'รายจ่าย'} ฿
+                {Number(moveTarget.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+              </strong>{' '}
+              จากโฟลเดอร์ <strong>{moveTarget.wallet?.name}</strong> ไปยัง:
+            </p>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                โฟลเดอร์ปลายทาง
+              </label>
+              <select
+                value={moveTargetWalletId}
+                onChange={(e) => setMoveTargetWalletId(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+              >
+                {wallets
+                  .filter((w) => w.id !== moveTarget.walletId)
+                  .map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name} (คงเหลือ: ฿{w.balance.toFixed(2)})
+                    </option>
+                  ))}
+              </select>
+            </div>
+            {(() => {
+              const sourceW = wallets.find((w) => w.id === moveTarget.walletId);
+              const targetW = wallets.find((w) => w.id === moveTargetWalletId);
+              if (!sourceW || !targetW) return null;
+              const delta = moveTarget.type === 'EXPENSE' ? moveTarget.amount : -moveTarget.amount;
+              const sourceAfter = sourceW.balance + delta;
+              const targetAfter = targetW.balance - delta;
+              return (
+                <div className="rounded-xl bg-indigo-50 border border-indigo-200 p-3 text-xs text-indigo-900 space-y-1">
+                  <p>
+                    <strong>{sourceW.name}:</strong> ฿{sourceW.balance.toFixed(2)} &rarr; ฿
+                    {sourceAfter.toFixed(2)}
+                  </p>
+                  <p>
+                    <strong>{targetW.name}:</strong> ฿{targetW.balance.toFixed(2)} &rarr; ฿
+                    {targetAfter.toFixed(2)}
+                  </p>
+                </div>
+              );
+            })()}
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setMoveTarget(null)}
+                className="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                disabled={submitting || !moveTargetWalletId}
+                onClick={handleConfirmMove}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {submitting ? 'กำลังย้าย...' : 'ยืนยันย้ายโฟลเดอร์'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Double-Check Cancel Transaction Modal (F-04 / BR-05) */}
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-slate-800">
+              ยืนยันการยกเลิกรายการลงถังขยะ (Double-Check)
+            </h3>
+            <p className="text-sm text-slate-600">
+              คุณต้องการยกเลิกรายการ{' '}
+              <strong>
+                {cancelTarget.type === 'INCOME' ? 'รายรับ' : 'รายจ่าย'} ฿
+                {Number(cancelTarget.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+              </strong>{' '}
+              ใช่หรือไม่? รายการจะถูกย้ายไปที่ถังขยะและปรับยอดเงินให้อัตโนมัติ
+            </p>
+            {(() => {
+              const sourceW = wallets.find((w) => w.id === cancelTarget.walletId);
+              if (!sourceW) return null;
+              const after =
+                cancelTarget.type === 'EXPENSE'
+                  ? sourceW.balance + cancelTarget.amount
+                  : sourceW.balance - cancelTarget.amount;
+              return (
+                <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
+                  <strong>{sourceW.name}:</strong> ฿{sourceW.balance.toFixed(2)} &rarr; ฿
+                  {after.toFixed(2)}
+                </div>
+              );
+            })()}
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setCancelTarget(null)}
+                className="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              >
+                ไม่ยกเลิก
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={handleConfirmCancel}
+                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
+              >
+                {submitting ? 'กำลังยกเลิก...' : 'ยืนยันยกเลิกลงถังขยะ'}
+              </button>
+            </div>
           </div>
         </div>
       )}
