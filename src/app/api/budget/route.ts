@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
   // Compute category breakdown
   const breakdownMap = new Map<string, number>();
   for (const tx of monthExpenses) {
-    const label = tx.category?.name || 'ไม่ระบุหมวดหมู่';
+    const label = tx.category?.name || 'Uncategorized';
     breakdownMap.set(label, (breakdownMap.get(label) || 0) + Number(tx.amount));
   }
 

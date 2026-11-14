@@ -31,7 +31,7 @@
 | :--- | :--- | :--- | :--- |
 | **`F-07`** | **Category Budget Envelopes & Double-Check Over-Budget Alert** | ตั้งงบรายหมวดหมู่ย่อย แสดงแถบสีสถานะ (เขียว/เหลือง/แดง) และแจ้งเตือนแบบ Double-Check เมื่อรายจ่ายทะลุงบหมวดหมู่ | `FR-07` |
 | **`F-08`** | **Atomic Inter-Wallet Transfer** | โอนเงินข้ามระหว่างโฟลเดอร์ 2 ใบของตัวเองแบบ Atomic (หักต้นทางและบวกปลายทางพร้อมกัน) โดยไม่นับรวมเป็นรายจ่ายสิ้นเปลือง | `FR-08, BR-07` |
-| **`F-09`** | **Savings Goal Jars & Target Predictor** | สร้างกระปุกออมเงินตามเป้าหมาย จัดสรรเงินเข้ากระปุกออม และคำนวณวันที่คาดว่าจะเก็บเงินครบเป้าหมาย | `FR-09, BR-07` |
+| **`F-09`** | **Savings Goal Jars, Locked Spending Folder & Target Predictor** | สร้างกระปุกออมเงินตามเป้าหมาย, ระบบล็อกโฟลเดอร์ป้องกันการใช้จ่ายด้วย PIN (PIN-Protected Spending Guard), จัดสรรเงินเข้ากระปุกออม และคำนวณวันที่คาดว่าจะเก็บเงินครบเป้าหมาย | `FR-09, BR-07, BR-09` |
 
 ### Sprint 3 (`F-10` ถึง `F-12` — 3 ฟีเจอร์สมบูรณ์ด้านบิลประจำเดือน กราฟวิเคราะห์ และปิดงวดบัญชี)
 | Feature ID | Feature Name | รายละเอียดการทำงาน | Related Requirements |
@@ -42,7 +42,7 @@
 
 ---
 
-## กฎธุรกิจหลักและการอุดช่องโหว่ทั้ง 6 จุด (`BR-01` – `BR-08`) เรียงตาม Sprint
+## กฎธุรกิจหลักและการอุดช่องโหว่ (`BR-01` – `BR-09`) เรียงตาม Sprint
 
 1. **`BR-01` (Monetary Precision & Category Match — Sprint 1):** `amount > 0.00`, `initial_balance >= 0.00`, และ `transaction.type` ต้องตรงกับ `category.type` เสมอ (`422 CATEGORY_TYPE_MISMATCH`)
 2. **`BR-02` (No Folder Overdraft & Atomic Concurrency Guard — Sprint 1):** ห้ามบันทึกรายจ่ายเกิน `current_balance` ของโฟลเดอร์ (`422 INSUFFICIENT_WALLET_BALANCE`) และใช้ Atomic Conditional Row Update ป้องกัน Race Condition
@@ -58,3 +58,4 @@
 6. **`BR-06` (Double-Check Folder Archive Protection — Sprint 1):** โฟลเดอร์ที่มีธุรกรรมค้างอยู่ห้ามลบแบบ Hard Delete ต้องใช้การเก็บเข้ากรุ (`Archive`) แบบ Double-Check หรือย้ายธุรกรรมออกก่อน
 7. **`BR-07` (Savings & Transfer Separation — Sprint 2):** การโอนเงินข้ามโฟลเดอร์ (`F-08`) และการหยอดกระปุกออมเงิน (`F-09`) ไม่นับรวมเป็นรายจ่ายสิ้นเปลือง (`EXPENSE`)
 8. **`BR-08` (Closed Fiscal Period Immutability — Sprint 3):** ห้ามเพิ่ม ย้าย ยกเลิก หรือกู้คืนธุรกรรมในเดือนที่ปิดงวดบัญชี (`CLOSED`) แล้ว (`422 PERIOD_CLOSED`)
+9. **`BR-09` (Folder PIN Spending Lock Guard — Sprint 2):** โฟลเดอร์ที่ถูกตั้งค่าล็อก (`is_locked: true`) จะไม่อนุญาตให้สร้างรายจ่าย (`EXPENSE`) หรือโอนเงินออก (`TRANSFER_OUT`) จนกว่าจะใส่รหัส PIN ยืนยันถูกต้อง (`403 FOLDER_LOCKED_PIN_REQUIRED`) เพื่อป้องกัน impulsive spending
