@@ -85,17 +85,19 @@ export function SparkleIcon({
   color = '#fbbf24',
   spin = true,
   reverse = false,
+  speedSeconds = 3.5,
 }: {
   className?: string;
   size?: number;
   color?: string;
   spin?: boolean;
   reverse?: boolean;
+  speedSeconds?: number;
 }) {
   const animClass = spin
     ? reverse
-      ? 'animate-twinkle-spin-reverse'
-      : 'animate-twinkle-spin'
+      ? 'star-spin-reverse'
+      : 'star-spin-normal'
     : '';
 
   return (
@@ -105,8 +107,18 @@ export function SparkleIcon({
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`origin-center shrink-0 ${animClass} ${className}`.trim()}
-      style={{ display: 'inline-block', maxWidth: `${size}px`, maxHeight: `${size}px`, transformOrigin: 'center' }}
+      className={`shrink-0 ${animClass} ${className}`.trim()}
+      style={{
+        display: 'inline-block',
+        maxWidth: `${size}px`,
+        maxHeight: `${size}px`,
+        transformOrigin: '50% 50%',
+        ...(spin
+          ? {
+              animation: `${reverse ? 'starSpinCcw' : 'starSpinCw'} ${speedSeconds}s linear infinite`,
+            }
+          : {}),
+      }}
     >
       <path
         d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z"

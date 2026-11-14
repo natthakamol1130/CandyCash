@@ -12,3 +12,51 @@ body {
   background: var(--background);
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+@keyframes starSpinCw {
+  0% {
+    transform: rotate(0deg) scale(0.85);
+    opacity: 0.55;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.25);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(0.85);
+    opacity: 0.55;
+  }
+}
+
+@keyframes starSpinCcw {
+  0% {
+    transform: rotate(0deg) scale(1.2);
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(-180deg) scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotate(-360deg) scale(1.2);
+    opacity: 1;
+  }
+}
+
+.star-spin-normal {
+  animation: starSpinCw 3.5s linear infinite !important;
+  transform-origin: center center !important;
+  display: inline-block !important;
+}
+
+.star-spin-reverse {
+  animation: starSpinCcw 4.2s linear infinite !important;
+  transform-origin: center center !important;
+  display: inline-block !important;
+}
+
+.star-spin-slow {
+  animation: starSpinCw 5.5s linear infinite !important;
+  transform-origin: center center !important;
+  display: inline-block !important;
+}
