@@ -19,6 +19,7 @@ import {
   ArrowLeftRight,
   ReceiptText,
   Trash2,
+  RotateCcw,
 } from 'lucide-react';
 
 interface UserSession {
@@ -101,6 +102,9 @@ export default function DashboardPage() {
   const [moveTarget, setMoveTarget] = useState<TransactionItem | null>(null);
   const [moveTargetWalletId, setMoveTargetWalletId] = useState('');
   const [cancelTarget, setCancelTarget] = useState<TransactionItem | null>(null);
+  const [trashItems, setTrashItems] = useState<TransactionItem[]>([]);
+  const [restoreTarget, setRestoreTarget] = useState<TransactionItem | null>(null);
+  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'TRASH'>('ACTIVE');
 
   // Form states - Create Wallet
   const [name, setName] = useState('');
@@ -162,6 +166,19 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const fetchTrash = useCallback(async () => {
+    try {
+      const res = await fetch('/api/trash');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success) {
+        setTrashItems(data.data.trashItems);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch('/api/categories');
@@ -176,10 +193,10 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchSession(), fetchWallets(), fetchTransactions(), fetchCategories()]).finally(() =>
+    Promise.all([fetchSession(), fetchWallets(), fetchTransactions(), fetchCategories(), fetchTrash()]).finally(() =>
       setLoading(false)
     );
-  }, [fetchSession, fetchWallets, fetchTransactions, fetchCategories]);
+  }, [fetchSession, fetchWallets, fetchTransactions, fetchCategories, fetchTrash]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -330,7 +347,33 @@ export default function DashboardPage() {
       }
 
       setCancelTarget(null);
-      await Promise.all([fetchWallets(), fetchTransactions()]);
+      await Promise.all([fetchWallets(), fetchTransactions(), fetchTrash()]);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmRestore = async () => {
+    if (!restoreTarget) return;
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/transactions/${restoreTarget.id}/restore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmed: true }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to restore transaction');
+      }
+
+      setRestoreTarget(null);
+      await Promise.all([fetchWallets(), fetchTransactions(), fetchTrash()]);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -480,80 +523,148 @@ export default function DashboardPage() {
               )}
             </section>
 
-            {/* Transactions Section */}
+            {/* Transactions & Trash Section (F-03, F-04, F-05) */}
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <ReceiptText className="w-5 h-5 text-indigo-500" />
-                  ประวัติรายการล่าสุด ({transactions.length})
-                </h2>
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('ACTIVE')}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${
+                      activeTab === 'ACTIVE'
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <ReceiptText className="w-4 h-4 text-indigo-500" />
+                    ประวัติรายการล่าสุด ({transactions.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('TRASH')}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${
+                      activeTab === 'TRASH'
+                        ? 'bg-rose-50 text-rose-700'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-500" />
+                    ถังขยะ / รายการที่ยกเลิก ({trashItems.length})
+                  </button>
+                </div>
               </div>
 
-              {transactions.length === 0 ? (
-                <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-500 text-sm shadow-sm">
-                  ยังไม่มีประวัติรายการ กดปุ่ม &ldquo;จดรายรับ-รายจ่าย&rdquo; ด้านบนเพื่อบันทึกรายการแรก
-                </div>
-              ) : (
-                <div className="rounded-2xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
-                  {transactions.slice(0, 10).map((tx) => (
-                    <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                            tx.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-                          }`}
-                        >
-                          {tx.type === 'INCOME' ? (
-                            <ArrowDownLeft className="w-5 h-5" />
-                          ) : (
-                            <ArrowUpRight className="w-5 h-5" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">
-                            {tx.note || tx.category?.name || (tx.type === 'INCOME' ? 'รายรับ' : 'รายจ่าย')}
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            {tx.wallet?.name} • {new Date(tx.transactionDate).toLocaleDateString('th-TH')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p
-                            className={`text-sm font-bold ${
-                              tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
+              {activeTab === 'ACTIVE' ? (
+                transactions.length === 0 ? (
+                  <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-500 text-sm shadow-sm">
+                    ยังไม่มีประวัติรายการ กดปุ่ม &ldquo;จดรายรับ-รายจ่าย&rdquo; ด้านบนเพื่อบันทึกรายการแรก
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+                    {transactions.slice(0, 10).map((tx) => (
+                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                              tx.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
                             }`}
                           >
-                            {tx.type === 'INCOME' ? '+' : '-'}฿
-                            {Number(tx.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                          </p>
-                          <span className="text-[10px] text-slate-400 font-medium">สำเร็จ</span>
+                            {tx.type === 'INCOME' ? (
+                              <ArrowDownLeft className="w-5 h-5" />
+                            ) : (
+                              <ArrowUpRight className="w-5 h-5" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-800">
+                              {tx.note || tx.category?.name || (tx.type === 'INCOME' ? 'รายรับ' : 'รายจ่าย')}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {tx.wallet?.name} • {new Date(tx.transactionDate).toLocaleDateString('th-TH')}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {wallets.length > 1 && (
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p
+                              className={`text-sm font-bold ${
+                                tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
+                              }`}
+                            >
+                              {tx.type === 'INCOME' ? '+' : '-'}฿
+                              {Number(tx.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                            </p>
+                            <span className="text-[10px] text-slate-400 font-medium">สำเร็จ</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {wallets.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => openMoveModal(tx)}
+                                title="ย้ายโฟลเดอร์ (Double-Check Move)"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                              >
+                                <ArrowLeftRight className="w-4 h-4" />
+                              </button>
+                            )}
                             <button
                               type="button"
-                              onClick={() => openMoveModal(tx)}
-                              title="ย้ายโฟลเดอร์ (Double-Check Move)"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                              onClick={() => setCancelTarget(tx)}
+                              title="ยกเลิกรายการลงถังขยะ (Double-Check Cancel)"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
                             >
-                              <ArrowLeftRight className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
-                          )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                trashItems.length === 0 ? (
+                  <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-500 text-sm shadow-sm">
+                    ถังขยะว่างเปล่า ไม่มีรายการที่ถูกยกเลิก
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+                    {trashItems.map((tx) => (
+                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition bg-slate-50/50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-200 text-slate-500">
+                            <Trash2 className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-700 line-through">
+                              {tx.note || tx.category?.name || (tx.type === 'INCOME' ? 'รายรับ' : 'รายจ่าย')}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {tx.wallet?.name} • วันที่ทำรายการ {new Date(tx.transactionDate).toLocaleDateString('th-TH')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-slate-400 line-through">
+                              {tx.type === 'INCOME' ? '+' : '-'}฿
+                              {Number(tx.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                            </p>
+                            <span className="text-[10px] text-rose-500 font-medium">ยกเลิกแล้ว</span>
+                          </div>
                           <button
                             type="button"
-                            onClick={() => setCancelTarget(tx)}
-                            title="ยกเลิกรายการลงถังขยะ (Double-Check Cancel)"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                            onClick={() => setRestoreTarget(tx)}
+                            title="กู้คืนรายการ (Double-Check Restore)"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition border border-emerald-200"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            กู้คืน
                           </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )
               )}
             </section>
           </>
@@ -935,6 +1046,70 @@ export default function DashboardPage() {
                 className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
               >
                 {submitting ? 'กำลังดำเนินการ...' : 'ยืนยันเก็บเข้ากรุ'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Double-Check Restore Modal (F-05 / BR-05 / TEST-10) */}
+      {restoreTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-slate-800">
+              ยืนยันการกู้คืนรายการจากถังขยะ (Double-Check Restore)
+            </h3>
+            <p className="text-sm text-slate-600">
+              คุณต้องการกู้คืนรายการ{' '}
+              <strong>
+                {restoreTarget.type === 'INCOME' ? 'รายรับ' : 'รายจ่าย'} ฿
+                {Number(restoreTarget.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+              </strong>{' '}
+              กลับคืนสู่โฟลเดอร์ <strong>{restoreTarget.wallet?.name}</strong> ใช่หรือไม่?
+            </p>
+            {(() => {
+              const sourceW = wallets.find((w) => w.id === restoreTarget.walletId);
+              if (!sourceW) return null;
+              const after =
+                restoreTarget.type === 'EXPENSE'
+                  ? sourceW.balance - restoreTarget.amount
+                  : sourceW.balance + restoreTarget.amount;
+              const isOverdraft = restoreTarget.type === 'EXPENSE' && sourceW.balance < restoreTarget.amount;
+              return (
+                <div
+                  className={`rounded-xl p-3 text-xs space-y-1 ${
+                    isOverdraft
+                      ? 'bg-rose-50 border border-rose-200 text-rose-800'
+                      : 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                  }`}
+                >
+                  <p>
+                    <strong>{sourceW.name}:</strong> ฿{sourceW.balance.toFixed(2)} &rarr; ฿
+                    {after.toFixed(2)}
+                  </p>
+                  {isOverdraft && (
+                    <p className="font-semibold text-rose-600">
+                      คำเตือน: โฟลเดอร์มียอดเงินไม่เพียงพอสำหรับการกู้คืนรายจ่ายนี้ (ห้ามยอดติดลบ BR-02 / BR-05)
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRestoreTarget(null)}
+                className="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={handleConfirmRestore}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {submitting ? 'กำลังกู้คืน...' : 'ยืนยันกู้คืนรายการ'}
               </button>
             </div>
           </div>
