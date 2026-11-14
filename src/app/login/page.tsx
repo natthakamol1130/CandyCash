@@ -105,12 +105,12 @@ export default function LoginPage() {
       {/* Very faint candy dots pattern */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.12] dark:opacity-[0.06] [background-image:radial-gradient(#f472b6_1px,transparent_1px)] [background-size:28px_28px]" />
 
-      {/* Twinkling & Floating Stars / Sparkles & Candies scattered generously across background */}
+      {/* Twinkling & Rotating Stars / Sparkles & Candies scattered generously across background */}
       {/* Top Left Cluster */}
-      <div className="pointer-events-none absolute top-8 left-10 flex items-center gap-2 animate-pulse">
+      <div className="pointer-events-none absolute top-8 left-10 flex items-center gap-2">
         <SparkleIcon size={26} color="#fde047" />
         <CandyIcon size={22} className="-rotate-12" />
-        <SparkleIcon size={14} color="#f472b6" />
+        <SparkleIcon size={14} color="#f472b6" reverse />
       </div>
       <div className="pointer-events-none absolute top-20 left-28 hidden sm:flex items-center gap-1.5 opacity-80">
         <SparkleIcon size={14} color="#6ee7b7" />
@@ -119,7 +119,7 @@ export default function LoginPage() {
 
       {/* Top Center-Left */}
       <div className="pointer-events-none absolute top-6 left-1/3 hidden md:flex items-center gap-2 opacity-75">
-        <SparkleIcon size={16} color="#fde047" />
+        <SparkleIcon size={16} color="#fde047" reverse />
         <SparkleIcon size={10} color="#a7f3d0" />
       </div>
 
@@ -127,7 +127,7 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute top-10 right-36 hidden sm:flex items-center gap-2 opacity-85">
         <SparkleIcon size={22} color="#6ee7b7" />
         <LollipopIcon size={24} className="rotate-12" />
-        <SparkleIcon size={14} color="#fde047" className="animate-pulse" />
+        <SparkleIcon size={14} color="#fde047" reverse />
       </div>
       <div className="pointer-events-none absolute top-24 right-16 hidden md:flex items-center gap-1.5 opacity-80">
         <CandyIcon size={20} className="rotate-45" />
@@ -136,28 +136,28 @@ export default function LoginPage() {
 
       {/* Mid Left Area */}
       <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 hidden xl:flex flex-col items-center gap-3 opacity-85">
-        <SparkleIcon size={22} color="#fde047" className="animate-pulse" />
+        <SparkleIcon size={22} color="#fde047" />
         <BonbonIcon size={32} className="-rotate-12" />
-        <SparkleIcon size={14} color="#a7f3d0" />
+        <SparkleIcon size={14} color="#a7f3d0" reverse />
         <CandyIcon size={26} className="rotate-45" />
         <SparkleIcon size={18} color="#f472b6" />
       </div>
 
       {/* Mid Right Area */}
       <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 hidden xl:flex flex-col items-center gap-3 opacity-85">
-        <SparkleIcon size={18} color="#f472b6" />
+        <SparkleIcon size={18} color="#f472b6" reverse />
         <LollipopIcon size={32} className="-rotate-12" />
-        <SparkleIcon size={24} color="#6ee7b7" className="animate-pulse" />
+        <SparkleIcon size={24} color="#6ee7b7" />
         <BonbonIcon size={24} className="rotate-12" />
-        <SparkleIcon size={15} color="#fde047" />
+        <SparkleIcon size={15} color="#fde047" reverse />
       </div>
 
       {/* Bottom Left Cluster */}
       <div className="pointer-events-none absolute bottom-8 left-10 flex items-center gap-2 opacity-85">
-        <SparkleIcon size={24} color="#f472b6" />
+        <SparkleIcon size={24} color="#f472b6" reverse />
         <CandyIcon size={24} className="rotate-12" />
-        <SparkleIcon size={16} color="#fde047" className="animate-pulse" />
-        <SparkleIcon size={12} color="#6ee7b7" />
+        <SparkleIcon size={16} color="#fde047" />
+        <SparkleIcon size={12} color="#6ee7b7" reverse />
       </div>
       <div className="pointer-events-none absolute bottom-24 left-24 hidden sm:flex items-center gap-1.5 opacity-75">
         <BonbonIcon size={20} className="-rotate-12" />
@@ -168,19 +168,19 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 hidden md:flex items-center gap-3 opacity-75">
         <SparkleIcon size={14} color="#fde047" />
         <CandyIcon size={18} className="rotate-12" />
-        <SparkleIcon size={16} color="#6ee7b7" />
+        <SparkleIcon size={16} color="#6ee7b7" reverse />
       </div>
 
       {/* Bottom Right Cluster */}
       <div className="pointer-events-none absolute bottom-10 right-16 flex items-center gap-2 opacity-85">
         <SparkleIcon size={26} color="#6ee7b7" />
         <LollipopIcon size={24} className="-rotate-12" />
-        <SparkleIcon size={18} color="#fbcfe8" />
-        <SparkleIcon size={14} color="#fde047" className="animate-pulse" />
+        <SparkleIcon size={18} color="#fbcfe8" reverse />
+        <SparkleIcon size={14} color="#fde047" />
       </div>
       <div className="pointer-events-none absolute bottom-24 right-32 hidden sm:flex items-center gap-1.5 opacity-75">
         <CandyIcon size={22} className="-rotate-45" />
-        <SparkleIcon size={14} color="#f472b6" />
+        <SparkleIcon size={14} color="#f472b6" reverse />
       </div>
 
       {/* Three Column Container for Desktop, neatly centered */}

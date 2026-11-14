@@ -628,14 +628,14 @@ export default function DashboardPage() {
 
       {/* Twinkling & Floating Stars / Sparkles & Candies scattered across Dashboard background */}
       {/* Top Left */}
-      <div className="pointer-events-none fixed top-20 left-6 z-0 hidden md:flex items-center gap-2 animate-pulse">
+      <div className="pointer-events-none fixed top-20 left-6 z-0 hidden md:flex items-center gap-2">
         <SparkleIcon size={24} color="#fde047" />
         <CandyIcon size={20} className="-rotate-12" />
-        <SparkleIcon size={14} color="#f472b6" />
+        <SparkleIcon size={14} color="#f472b6" reverse />
       </div>
       {/* Top Right */}
       <div className="pointer-events-none fixed top-24 right-8 z-0 hidden md:flex items-center gap-2 opacity-85">
-        <SparkleIcon size={20} color="#6ee7b7" />
+        <SparkleIcon size={20} color="#6ee7b7" reverse />
         <LollipopIcon size={22} className="rotate-12" />
         <SparkleIcon size={12} color="#fbcfe8" />
       </div>
@@ -643,27 +643,27 @@ export default function DashboardPage() {
       <div className="pointer-events-none fixed top-1/3 left-4 z-0 hidden lg:flex flex-col items-center gap-3 opacity-80">
         <SparkleIcon size={18} color="#fde047" />
         <BonbonIcon size={28} className="-rotate-12" />
-        <SparkleIcon size={12} color="#a7f3d0" className="animate-pulse" />
+        <SparkleIcon size={12} color="#a7f3d0" reverse />
         <CandyIcon size={24} className="rotate-45" />
       </div>
       {/* Mid Right */}
       <div className="pointer-events-none fixed top-1/2 right-4 z-0 hidden lg:flex flex-col items-center gap-3 opacity-80">
-        <SparkleIcon size={15} color="#f472b6" />
+        <SparkleIcon size={15} color="#f472b6" reverse />
         <LollipopIcon size={28} className="-rotate-12" />
-        <SparkleIcon size={20} color="#6ee7b7" className="animate-pulse" />
+        <SparkleIcon size={20} color="#6ee7b7" />
         <BonbonIcon size={22} className="rotate-12" />
       </div>
       {/* Bottom Left */}
       <div className="pointer-events-none fixed bottom-16 left-6 z-0 hidden sm:flex items-center gap-2 opacity-85">
-        <SparkleIcon size={24} color="#f472b6" />
+        <SparkleIcon size={24} color="#f472b6" reverse />
         <CandyIcon size={22} className="rotate-12" />
-        <SparkleIcon size={14} color="#fde047" className="animate-pulse" />
+        <SparkleIcon size={14} color="#fde047" />
       </div>
       {/* Bottom Right */}
       <div className="pointer-events-none fixed bottom-12 right-8 z-0 hidden sm:flex items-center gap-2 opacity-85">
         <SparkleIcon size={26} color="#6ee7b7" />
         <LollipopIcon size={24} className="-rotate-12" />
-        <SparkleIcon size={15} color="#fbcfe8" />
+        <SparkleIcon size={15} color="#fbcfe8" reverse />
         <SparkleIcon size={12} color="#fde047" />
       </div>
 
@@ -833,11 +833,11 @@ export default function DashboardPage() {
               <div className="pointer-events-none absolute -right-12 -bottom-12 w-48 h-48 rounded-full bg-white/15 blur-xl" />
               <div className="pointer-events-none absolute top-0 right-1/4 w-32 h-32 rounded-full bg-teal-100/20 blur-lg" />
               {/* Sparkles on Banner */}
-              <div className="pointer-events-none absolute top-3.5 right-6 opacity-80 animate-pulse hidden sm:block">
+              <div className="pointer-events-none absolute top-3.5 right-6 opacity-80 hidden sm:block">
                 <SparkleIcon size={18} color="#fef08a" />
               </div>
               <div className="pointer-events-none absolute bottom-3 left-1/3 opacity-70 hidden sm:block">
-                <SparkleIcon size={14} color="#ffffff" />
+                <SparkleIcon size={14} color="#ffffff" reverse />
               </div>
               <div className="relative z-10">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/25 dark:bg-white/10 backdrop-blur-md text-[11px] font-medium text-white mb-1.5 border border-white/30 dark:border-white/15">
