@@ -24,14 +24,14 @@ export async function signSessionToken(session: AuthSession): Promise<string> {
 
 export async function verifySessionToken(token: string): Promise<AuthSession | null> {
   try {
-    const { payload } = await jwtVerify(SECRET_KEY, token);
+    const { payload } = await jwtVerify(token, SECRET_KEY);
     return {
       userId: payload.userId as string,
       email: payload.email as string,
       fullName: payload.fullName as string,
       role: payload.role as 'USER' | 'ADMIN',
     };
-  } catch {
+  } catch (err) {
     return null;
   }
 }
