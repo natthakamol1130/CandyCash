@@ -58,20 +58,62 @@ export async function createTransaction(userId: string, input: CreateTransaction
     throw new TransactionServiceError('Cannot record transaction into an archived wallet', 'WALLET_ARCHIVED', 400);
   }
 
-  // BR-01: Overdraft Protection (422 INSUFFICIENT_BALANCE)
-  if (type === 'EXPENSE' && wallet.balance < amount) {
-    throw new TransactionServiceError(
-      `Insufficient balance. Available: ${wallet.balance.toFixed(2)}, required: ${amount.toFixed(2)}`,
-      'INSUFFICIENT_BALANCE',
-      422
-    );
+  // Category Validation (BR-01 / TEST-07): Check category type matches transaction type
+  if (categoryId) {
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      throw new TransactionServiceError('Category not found', 'CATEGORY_NOT_FOUND', 404);
+    }
+
+    if (!category.isSystem && category.createdById !== userId) {
+      throw new TransactionServiceError('Forbidden: Access denied to category', 'FORBIDDEN', 403);
+    }
+
+    if (category.type !== type) {
+      throw new TransactionServiceError(
+        `Category type (${category.type}) does not match transaction type (${type})`,
+        'CATEGORY_TYPE_MISMATCH',
+        422
+      );
+    }
   }
 
   const finalDate = transactionDate ? new Date(transactionDate) : new Date();
 
-  // ACID Atomic Transaction via prisma.$transaction
-  const [createdTransaction, updatedWallet] = await prisma.$transaction([
-    prisma.transaction.create({
+  // BR-02: Interactive Transaction preventing Race Condition & Overdraft
+  return await prisma.$transaction(async (tx) => {
+    if (type === 'EXPENSE') {
+      // Atomic condition: balance must be >= amount at the exact moment of execution
+      const updateResult = await tx.wallet.updateMany({
+        where: {
+          id: walletId,
+          balance: { gte: amount },
+        },
+        data: {
+          balance: { decrement: amount },
+        },
+      });
+
+      if (updateResult.count === 0) {
+        throw new TransactionServiceError(
+          'Insufficient balance in wallet',
+          'INSUFFICIENT_BALANCE',
+          422
+        );
+      }
+    } else {
+      await tx.wallet.update({
+        where: { id: walletId },
+        data: {
+          balance: { increment: amount },
+        },
+      });
+    }
+
+    const createdTransaction = await tx.transaction.create({
       data: {
         walletId,
         categoryId: categoryId || null,
@@ -85,19 +127,17 @@ export async function createTransaction(userId: string, input: CreateTransaction
         category: true,
         wallet: true,
       },
-    }),
-    prisma.wallet.update({
-      where: { id: walletId },
-      data: {
-        balance: type === 'INCOME' ? { increment: amount } : { decrement: amount },
-      },
-    }),
-  ]);
+    });
 
-  return {
-    ...createdTransaction,
-    walletBalanceAfter: updatedWallet.balance,
-  };
+    const updatedWallet = await tx.wallet.findUnique({
+      where: { id: walletId },
+    });
+
+    return {
+      ...createdTransaction,
+      walletBalanceAfter: updatedWallet?.balance ?? 0,
+    };
+  });
 }
 
 export async function listUserTransactions(userId: string, filters: TransactionFilterInput = {}) {

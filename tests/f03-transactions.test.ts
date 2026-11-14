@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { prisma } from '../src/lib/prisma';
 import { signSessionToken } from '../src/lib/auth';
 import { POST as createTransactionRoute, GET as listTransactionsRoute } from '../src/app/api/transactions/route';
-import { createTransaction, listUserTransactions, TransactionServiceError } from '../src/services/transaction-service';
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 
@@ -132,7 +131,7 @@ describe('F-03: Atomic Income & Expense Transaction Logging', () => {
     });
   });
 
-  describe('TEST-06: Overdraft Protection (422 INSUFFICIENT_BALANCE)', () => {
+  describe('TEST-06: Overdraft Protection & Race Condition Prevention (BR-01, BR-02)', () => {
     it('should reject expense exceeding wallet balance with 422 and keep wallet balance unchanged', async () => {
       const beforeWallet = await prisma.wallet.findUnique({ where: { id: user1WalletId } });
       const currentBalance = beforeWallet?.balance; // 750.0
@@ -163,10 +162,76 @@ describe('F-03: Atomic Income & Expense Transaction Logging', () => {
       const afterWallet = await prisma.wallet.findUnique({ where: { id: user1WalletId } });
       expect(afterWallet?.balance).toBe(currentBalance);
     });
+
+    it('should prevent race condition overdraft when 2 concurrent expenses exceed balance via Promise.all (BR-02)', async () => {
+      // Create a dedicated wallet with exactly 500.00 balance
+      const user = await prisma.user.findUnique({ where: { email: 'f03_user1@candycash.local' } });
+      const raceWallet = await prisma.wallet.create({
+        data: {
+          ownerId: user!.id,
+          name: 'Race Condition Test Wallet',
+          walletType: 'CASH',
+          color: '#ef4444',
+          balance: 500.0,
+        },
+      });
+
+      // Fire 2 concurrent expense requests of 400.00 each simultaneously
+      const makeRequest = () =>
+        createTransactionRoute(
+          new NextRequest('http://localhost:3000/api/transactions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              cookie: `candycash_session=${user1Token}`,
+            },
+            body: JSON.stringify({
+              walletId: raceWallet.id,
+              type: 'EXPENSE',
+              amount: 400.0,
+              note: 'Concurrent test',
+            }),
+          })
+        );
+
+      const [res1, res2] = await Promise.all([makeRequest(), makeRequest()]);
+      const statuses = [res1.status, res2.status].sort();
+
+      // Exactly ONE request must succeed (201) and ONE must be blocked (422)
+      expect(statuses).toEqual([201, 422]);
+
+      // Final balance must be 500 - 400 = 100, NEVER negative
+      const finalWallet = await prisma.wallet.findUnique({ where: { id: raceWallet.id } });
+      expect(finalWallet?.balance).toBe(100.0);
+    });
   });
 
-  describe('TEST-07: Record income increases wallet balance correctly and atomically', () => {
-    it('should add income amount to wallet balance atomically', async () => {
+  describe('TEST-07: Category Validation & Atomic Income', () => {
+    it('should reject transaction when category type does not match transaction type with 422 CATEGORY_TYPE_MISMATCH (BR-01)', async () => {
+      // Attempt to log EXPENSE with Salary Category (which has type INCOME)
+      const req = new NextRequest('http://localhost:3000/api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cookie: `candycash_session=${user1Token}`,
+        },
+        body: JSON.stringify({
+          walletId: user1WalletId,
+          categoryId: salaryCategoryId, // INCOME category
+          type: 'EXPENSE', // EXPENSE transaction
+          amount: 100.0,
+        }),
+      });
+
+      const res = await createTransactionRoute(req);
+      expect(res.status).toBe(422);
+
+      const json = await res.json();
+      expect(json.success).toBe(false);
+      expect(json.code).toBe('CATEGORY_TYPE_MISMATCH');
+    });
+
+    it('should add income amount to wallet balance atomically when matching category is used', async () => {
       const beforeWallet = await prisma.wallet.findUnique({ where: { id: user1WalletId } });
       const currentBalance = beforeWallet?.balance!; // 750.0
 
