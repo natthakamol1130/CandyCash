@@ -1,0 +1,110 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String            @id @default(uuid())
+  email               String            @unique
+  passwordHash        String
+  fullName            String
+  role                String            @default("USER") // "USER" | "ADMIN"
+  monthlyBudgetTarget Float             @default(10000.00)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  wallets             Wallet[]
+  transactions        Transaction[]
+  budgetEnvelopes     BudgetEnvelope[]
+  savingsJars         SavingsJar[]
+  customCategories    Category[]
+}
+
+model Wallet {
+  id          String        @id @default(uuid())
+  ownerId     String
+  name        String
+  walletType  String        @default("CASH") // "CASH" | "BANK" | "EWALLET" | "POCKET"
+  color       String        @default("#ec4899") // Candy Pink
+  icon        String        @default("wallet")
+  balance     Float         @default(0.00)
+  isArchived  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+}
+
+model Category {
+  id          String        @id @default(uuid())
+  name        String
+  type        String        // "EXPENSE" | "INCOME"
+  icon        String        @default("tag")
+  isSystem    Boolean       @default(false)
+  createdById String?
+  createdAt   DateTime      @default(now())
+
+  createdBy    User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  transactions Transaction[]
+  budgetEnvelopes BudgetEnvelope[]
+}
+
+model Transaction {
+  id              String    @id @default(uuid())
+  walletId        String
+  categoryId      String?
+  createdById     String
+  type            String    // "INCOME" | "EXPENSE" | "TRANSFER"
+  amount          Float
+  note            String?
+  transactionDate DateTime  @default(now())
+  isCancelled     Boolean   @default(false)
+  cancelledAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  wallet    Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+}
+
+model BudgetTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  rulesJson   String   // JSON string defining 50/30/20 or custom ratios
+  isSystem    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model BudgetEnvelope {
+  id                    String   @id @default(uuid())
+  userId                String
+  categoryId            String
+  monthlyLimit          Float
+  alertThresholdPercent Float    @default(80.0) // 80% amber, 100% red
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model SavingsJar {
+  id            String    @id @default(uuid())
+  userId        String
+  name          String
+  targetAmount  Float
+  currentAmount Float     @default(0.00)
+  targetDate    DateTime?
+  isCompleted   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

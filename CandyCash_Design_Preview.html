@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CandyCash — CPE 334 Deliverable 1 System Design (v2.0 Final 12 Golden Features)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+  </script>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #eef2ff;
+      --emerald: #059669;
+      --emerald-light: #ecfdf5;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --rose: #e11d48;
+      --rose-light: #fff1f2;
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-300: #cbd5e1;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+      color: var(--slate-900);
+      background: var(--slate-100);
+      margin: 0;
+      padding: 24px;
+      line-height: 1.65;
+      font-size: 14.5px;
+    }
+    .toolbar {
+      max-width: 1120px;
+      margin: 0 auto 16px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--slate-900);
+      color: white;
+      padding: 12px 22px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .toolbar button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+    .toolbar button:hover { background: var(--primary-dark); }
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      background: white;
+      padding: 44px 52px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    h1 { font-size: 27px; margin: 8px 0 8px 0; color: var(--slate-900); line-height: 1.3; }
+    h2 {
+      font-size: 20px;
+      margin-top: 40px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    h3 { font-size: 16.5px; margin-top: 26px; margin-bottom: 10px; color: var(--slate-900); }
+    h4 { font-size: 15px; margin: 0 0 8px 0; color: var(--slate-900); }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 22px; }
+    li { margin-bottom: 4px; }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-indigo { background: var(--primary-light); color: var(--primary); }
+    .badge-emerald { background: var(--emerald-light); color: var(--emerald); }
+    .badge-amber { background: var(--amber-light); color: var(--amber); }
+    .badge-rose { background: var(--rose-light); color: var(--rose); }
+    .badge-purple { background: var(--purple-light); color: var(--purple); }
+    .callout {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 18px 0;
+    }
+    .callout-emerald {
+      background: var(--emerald-light);
+      border-left: 5px solid var(--emerald);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 18px 0;
+    }
+    .callout-amber {
+      background: var(--amber-light);
+      border-left: 5px solid var(--amber);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 18px 0;
+    }
+    .callout-rose {
+      background: var(--rose-light);
+      border-left: 5px solid var(--rose);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 18px 0;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 14px 0;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      margin: 14px 0;
+    }
+    .card {
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 16px 20px;
+      background: var(--slate-50);
+    }
+    .card-white {
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 16px 20px;
+      background: #ffffff;
+    }
+    .meta-box {
+      border: 1px solid var(--slate-300);
+      background: var(--slate-50);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 16px 0 24px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 24px;
+      font-size: 13.5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 22px 0;
+      font-size: 13.5px;
+    }
+    th, td {
+      border: 1px solid var(--slate-200);
+      padding: 9px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--slate-50);
+      font-weight: 600;
+      color: var(--slate-700);
+    }
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--slate-100);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      color: #be123c;
+    }
+    pre {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--slate-900);
+      color: #f8fafc;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      overflow-x: auto;
+      line-height: 1.5;
+      margin: 8px 0 14px 0;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+    .mermaid {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 14px 0 22px 0;
+      text-align: center;
+    }
+    @page {
+      size: A4;
+      margin: 12mm;
+    }
+    @media print {
+      body { background: white; padding: 0; font-size: 12.5px; }
+      .toolbar { display: none; }
+      .container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+      .card, .card-white, .callout, .callout-emerald, .callout-amber, .callout-rose, .mermaid, .meta-box, pre, tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      h2, h3 {
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <div>
+      <strong>🍬 CandyCash System Design (v2.0 Final — 12 Golden Features &amp; Double-Check Edition)</strong>
+    </div>
+    <button onclick="window.print()">🖨️ พิมพ์ / Save เป็น PDF ส่งให้เพื่อน</button>
+  </div>
+
+  <div class="container">
+    <!-- HEADER & SUBMISSION METADATA (Rubric Section 4 & 4.3) -->
+    <div>
+      <span class="badge badge-indigo">CPE 334 Project Deliverable 1 (80 Points | 8% of Grade)</span>
+      <span class="badge badge-emerald" style="margin-left: 6px;">Final Baseline v2.0 (12 Golden Features + Self-Service Double-Check)</span>
+    </div>
+    <h1>🍬 CandyCash: Smart Personal Money &amp; Expense Logging System</h1>
+    <p><strong>Assigned Theme:</strong> Personal Money and Expense Logging System (เว็บสมุดจดบันทึกรายรับ-รายจ่ายส่วนตัวอัจฉริยะ พร้อมระบบ Double-Check โยกย้าย/ยกเลิกรายการ ถังขยะกู้คืนข้อมูล และคำนวณงบใช้จ่ายรายวัน)</p>
+
+    <!-- Required PDF Cover Metadata per Section 4 of Deliverable 1 PDF -->
+    <div class="meta-box">
+      <div><strong>👥 สมาชิกคนที่ 1 (Student 1):</strong> <code>[ชื่อ-นามสกุล นักศึกษาคนที่ 1]</code> — รหัส <code>[6607050XXXX]</code></div>
+      <div><strong>👥 สมาชิกคนที่ 2 (Student 2):</strong> <code>[ชื่อ-นามสกุล นักศึกษาคนที่ 2]</code> — รหัส <code>[6607050XXXX]</code></div>
+      <div><strong>🔗 GitHub Repository URL:</strong> <code>https://github.com/[your-org]/candycash-cpe334</code></div>
+      <div><strong>🏷️ Submitted Release Tag / Commit:</strong> <code>v1.0.0-sprint1</code> (Commit: <code>[7-char-sha]</code> on <code>main</code>)</div>
+    </div>
+
+    <!-- Navigation Table per Section 4.3 of Deliverable 1 PDF -->
+    <h3>🧭 Document Navigation &amp; Rubric Traceability Table (ตามเกณฑ์ข้อ 4.3)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Part</th>
+          <th>Rubric Section &amp; Required Contents</th>
+          <th>Points</th>
+          <th>Key Artifact IDs Covered in This Section</th>
+          <th>PDF Page Range</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Part A</strong></td>
+          <td><strong>SRS &amp; Product Scope:</strong> Stakeholder problem, <code>USER</code> &amp; <code>ADMIN</code> actors, scope/exclusions, FR, BR, NFR, decisions</td>
+          <td><strong>10</strong></td>
+          <td><code>FR-01..FR-12</code>, <code>BR-01..BR-08</code>, <code>NFR-01..NFR-05</code></td>
+          <td>Pages 1–3</td>
+        </tr>
+        <tr>
+          <td><strong>Part B</strong></td>
+          <td><strong>Feature Inventory &amp; Traceability:</strong> 12 Golden Features (<code>F-01..F-12</code>), dependencies, sprint mapping, coverage check</td>
+          <td><strong>10</strong></td>
+          <td><code>F-01..F-12</code> &harr; <code>FR-01..12</code>, <code>BR-01..08</code>, <code>NFR-01..05</code></td>
+          <td>Pages 3–5</td>
+        </tr>
+        <tr>
+          <td><strong>Part C</strong></td>
+          <td><strong>System-Level SDS:</strong> Architecture, ER model, atomic concurrency, bidirectional RBAC matrix (<code>USER</code>/<code>ADMIN</code>), UI/API, Auth &amp; GCP</td>
+          <td><strong>15</strong></td>
+          <td>3-Tier Architecture, ER Schema, Atomic SQL Guard, RBAC Matrix</td>
+          <td>Pages 5–8</td>
+        </tr>
+        <tr>
+          <td><strong>Part D</strong></td>
+          <td><strong>Three-Sprint Plan:</strong> Goals, feature allocation (<code>6 + 3 + 3</code>), dependencies, checkpoints &amp; Sprint 1 scope</td>
+          <td><strong>5</strong></td>
+          <td>Sprint 1 (<code>F-01..F-06</code>), Sprint 2 (<code>F-07..F-09</code>), Sprint 3 (<code>F-10..F-12</code>)</td>
+          <td>Page 8</td>
+        </tr>
+        <tr>
+          <td><strong>Part E</strong></td>
+          <td><strong>Sprint 1 Engineering Contracts:</strong> Version history, per-feature API/UI/DB specs, State Machine, AC, STS &amp; DoD</td>
+          <td><strong>20</strong></td>
+          <td><code>F-01..F-06</code> Contracts, <code>AC-01..AC-12</code>, <code>TEST-01..TEST-12</code>, DoD</td>
+          <td>Pages 9–12</td>
+        </tr>
+        <tr>
+          <td><strong>Part F</strong></td>
+          <td><strong>Working Sprint 1 &amp; Verification Plan:</strong> Team roles, 3 demo scenarios, TDD Red-Green workflow, PR review &amp; AI declaration</td>
+          <td><strong>20</strong></td>
+          <td>Demo Scenarios 1–3, TDD Commit Sequence, Git Staging-to-Main</td>
+          <td>Pages 12–13</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- SUMMARY OF V2.0 ARCHITECTURE -->
+    <div class="callout-emerald">
+      <strong>✨ สรุปจุดเด่นของระบบ CandyCash (v2.0 Final Edition): เรียงลำดับ 12 ฟีเจอร์ตาม Sprint (<code>F-01..F-06</code> &rarr; <code>F-07..F-09</code> &rarr; <code>F-10..F-12</code>) ไม่ข้ามเลข</strong>
+      <div class="grid-2" style="margin-top: 10px;">
+        <div class="card-white">
+          <h4>🟢 Sprint 1 (<code>F-01</code> ถึง <code>F-06</code> — ทำจริงใน Deliverable 1 เรียง 1–6)</h4>
+          <ul style="margin-bottom: 0; padding-left: 18px;">
+            <li><strong><code>F-01</code> Authentication &amp; Role Guard:</strong> ระบบ Login/Logout และแยกสิทธิ์ <code>USER</code> กับ <code>ADMIN</code> (100% Privacy)</li>
+            <li><strong><code>F-02</code> Custom Expense Folders &amp; Archive:</strong> สร้างโฟลเดอร์บันทึกเงินส่วนตัว (เลือกสี &amp; ไอคอนได้) และเก็บเข้ากรุแบบ Double-Check</li>
+            <li><strong><code>F-03</code> Atomic Income &amp; Expense Logging:</strong> จดรายรับ-รายจ่ายผ่านฟอร์มมาตรฐาน พร้อมเกราะป้องกันยอดเงินในโฟลเดอร์ติดลบ (No Overdraft)</li>
+            <li><strong><code>F-04</code> Double-Check Move &amp; Cancel:</strong> ยกเลิกรายการ (<code>Cancel</code>) หรือย้ายโฟลเดอร์ (<code>Move</code>) ได้เองผ่านหน้าต่าง <strong>Double-Check สรุปยอดเงินก่อน-หลัง</strong> โดยไม่ต้องพิมพ์เหตุผลและไม่ต้องรอ Admin</li>
+            <li><strong><code>F-05</code> Trash History &amp; Restore:</strong> ถังขยะพักรายการที่ยกเลิกเผื่อกดกู้คืน (<code>Restore</code>) แบบ Double-Check ได้เอง</li>
+            <li><strong><code>F-06</code> Daily Safe-to-Spend &amp; Admin Catalog:</strong> คำนวณงบที่ใช้ได้รายวัน ค้นหา/กรองรายการ และฝั่ง <code>ADMIN</code> จัดการหมวดหมู่กลาง &amp; สูตรจัดงบแนะนำ</li>
+          </ul>
+        </div>
+        <div class="card-white">
+          <h4>🟡 Sprint 2 (<code>F-07..F-09</code>) &amp; 🔵 Sprint 3 (<code>F-10..F-12</code>)</h4>
+          <ul style="margin-bottom: 0; padding-left: 18px;">
+            <li><strong><code>F-07</code> Category Budget Envelopes (Sprint 2):</strong> ซองงบประมาณแยกตามหมวดหมู่ย่อย แสดงแถบสีสถานะ (เขียว/เหลือง/แดง) และเตือนเมื่อเกินงบ</li>
+            <li><strong><code>F-08</code> Atomic Inter-Wallet Transfer (Sprint 2):</strong> โอนเงินข้ามระหว่างโฟลเดอร์ 2 ใบของตัวเองแบบ Atomic โดยไม่นับเป็นรายจ่าย</li>
+            <li><strong><code>F-09</code> Savings Goal Jars (Sprint 2):</strong> กระปุกออมเงินตามเป้าหมาย พร้อมคำนวณวันที่คาดว่าจะเก็บเงินครบ</li>
+            <li><strong><code>F-10</code> Recurring Bills &amp; Due Reminder (Sprint 3):</strong> แจ้งเตือนบิลประจำเดือนและค่าสมาชิกที่ใกล้ถึงกำหนดจ่าย</li>
+            <li><strong><code>F-11</code> Financial Analytics &amp; CSV Export (Sprint 3):</strong> กราฟวิเคราะห์รายเดือน/รายวัน เปรียบเทียบเดือนก่อนหน้า และส่งออกไฟล์ CSV</li>
+            <li><strong><code>F-12</code> Fiscal Month-End Closing Lock (Sprint 3):</strong> ล็อกงวดบัญชีสิ้นเดือนกันการเผลอแก้รายการย้อนหลัง พร้อมระบบขอ <code>ADMIN</code> ช่วยปลดล็อก</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PART A: SRS AND PRODUCT SCOPE (10 POINTS)  -->
+    <!-- ========================================== -->
+    <h2>
+      <span>Part A: SRS &amp; Product Scope</span>
+      <span class="badge badge-indigo">10 คะแนน | Suggested Artifact: docs/srs.md</span>
+    </h2>
+
+    <h3>1. Stakeholder Problem, Chosen Context &amp; Actors</h3>
+    <p>
+      <strong>ปัญหาของผู้ใช้งาน (Stakeholder Problem):</strong> เว็บหรือแอปจดบันทึกรายรับ-รายจ่ายทั่วไปมักมีแค่ฟอร์มกรอกข้อมูลธรรมดาที่ยอมให้คีย์รายจ่ายจนยอดเงินติดลบ เวลาจดผิดโฟลเดอร์ก็ต้องลบแล้วพิมพ์ใหม่ทั้งหมด เวลาเผลอกดลบรายการทิ้งก็กู้คืนไม่ได้ และไม่ช่วยคำนวณว่าจากงบที่เหลือในเดือนนี้ "วันนี้ยังใช้เงินได้อีกกี่บาท"
+    </p>
+    <p>
+      <strong>บริบทของระบบ (Chosen Context):</strong> <strong>CandyCash</strong> คือเว็บสมุดจดบันทึกรายรับ-รายจ่ายส่วนตัวอัจฉริยะ (ไม่ได้ผูกกับธนาคารจริง แต่ให้ผู้ใช้สร้างโฟลเดอร์จำลองเพื่อจดบันทึกและบริหารเงินด้วยตนเอง) ที่มีเกราะป้องกันยอดเงินติดลบ ระบบยืนยัน 2 ชั้น (<strong>Double-Check</strong>) เวลาจะยกเลิกหรือย้ายรายการข้ามโฟลเดอร์ ถังขยะสำหรับกู้คืนรายการที่ยกเลิก ตัวคำนวณงบใช้จ่ายรายวันอัตโนมัติ (<strong>Daily Safe-to-Spend</strong>) และมี <code>ADMIN</code> คอยอำนวยความสะดวกเรื่องหมวดหมู่กลางและสูตรจัดงบมาตรฐาน
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>👤 บทบาทที่ 1: USER (Personal Account Owner)</h4>
+        <p>สร้างโฟลเดอร์/กระเป๋าบันทึกเงินส่วนตัว (เลือกสีและไอคอนได้), จดบันทึกรายรับ-รายจ่ายผ่านฟอร์มมาตรฐานพร้อมระบุหมวดหมู่และบันทึกช่วยจำ, ยกเลิกรายการหรือย้ายรายการข้ามโฟลเดอร์ด้วยตนเองผ่านระบบ <strong>Double-Check</strong>, กู้คืนรายการที่ยกเลิกจากถังขยะ, ตั้งงบรายเดือนหรือเลือกใช้สูตรจัดงบแนะนำเพื่อดูยอดที่ใช้ได้ต่อวัน, ตั้งกระปุกออมเงิน และดูรายงานสรุปผล</p>
+      </div>
+      <div class="card">
+        <h4>🛠️ บทบาทที่ 2: ADMIN (System &amp; Catalog Administrator)</h4>
+        <p>สร้างและจัดการหมวดหมู่มาตรฐานกลางของระบบ (<code>System Categories</code>), สร้างและอัปเดต <strong>สูตรจัดงบแนะนำ (<code>Starter Budget Templates</code>)</strong> เพื่ออำนวยความสะดวกให้ <code>USER</code> นำไปใช้งาน และช่วยเหลือจัดการปลดล็อกบัญชี/งวดบัญชีเมื่อ <code>USER</code> แจ้งปัญหาเข้ามา โดยไม่มีสิทธิ์เข้าถึงโฟลเดอร์หรือรายการเงินส่วนตัวของ <code>USER</code></p>
+      </div>
+    </div>
+
+    <h3>2. Product Scope &amp; Explicit Exclusions</h3>
+    <div class="grid-2">
+      <div class="card-white">
+        <h4>✅ ขอบเขตที่ระบบทำ (In-Scope Baseline)</h4>
+        <ul>
+          <li>ระบบยืนยันตัวตน (Login/Logout/Current Identity) และแยกสิทธิ์ 2 บทบาท (<code>USER</code>, <code>ADMIN</code>) แบบ Bidirectional RBAC</li>
+          <li>การสร้างโฟลเดอร์บันทึกเงินส่วนตัวหลายใบ (เลือกสี/ไอคอนได้) และการป้องกันการลบโฟลเดอร์ที่มีรายการค้างอยู่แบบ Double-Check</li>
+          <li>การบันทึกรายรับ (<code>INCOME</code>) และรายจ่าย (<code>EXPENSE</code>) ผ่านฟอร์มมาตรฐานพร้อมเกราะป้องกันยอดเงินติดลบ (No Overdraft)</li>
+          <li>ระบบ <strong>Double-Check</strong> สำหรับยกเลิกรายการ (<code>Cancel</code>), ย้ายรายการข้ามโฟลเดอร์ (<code>Move</code>), และกู้คืนรายการจากถังขยะ (<code>Restore</code>) ด้วยตัวเอง</li>
+          <li>ตัวคำนวณงบใช้ได้รายวัน (<code>Daily Safe-to-Spend</code>), กราฟสัดส่วนรายจ่าย, หมวดหมู่กลาง และสูตรจัดงบแนะนำโดย <code>ADMIN</code></li>
+          <li>ซองงบประมาณรายหมวดหมู่, โอนเงินข้ามโฟลเดอร์, กระปุกออมเงิน (Sprint 2) และแจ้งเตือนบิลประจำเดือน, CSV Export, ล็อกงวดบัญชี (Sprint 3)</li>
+        </ul>
+      </div>
+      <div class="card-white">
+        <h4>🚫 สิ่งที่อยู่นอกขอบเขตชัดเจน (Explicit Exclusions)</h4>
+        <ul>
+          <li><strong>ไม่ได้ผูกกับบัญชีธนาคารจริง (No Real Bank Integration / Payment Gateway):</strong> เป็นเว็บสำหรับให้ผู้ใช้จดบันทึกและคำนวณยอดเงินด้วยตนเอง</li>
+          <li><strong>ไม่ทำระบบสมัครสมาชิกผ่านอีเมลจริง (No Self-Registration / SMTP):</strong> ใช้ Reproducible Seeded Accounts ตามข้อกำหนดวิชา</li>
+          <li><strong>ไม่รองรับหลายสกุลเงิน (Single Currency THB):</strong> ใช้สกุลเงินบาท (<code>THB</code>) ทศนิยม 2 ตำแหน่ง</li>
+          <li><strong>ไม่รวมปุ่มลัดคีย์ด่วน (No Shortcut Presets), ป้ายอารมณ์ตอนจ่าย, ระบบหารบิลกับเพื่อน หรือเหรียญรางวัลเกม:</strong> เพื่อให้หน้าจอสะอาดตาและโฟกัสที่ความถูกต้องทางบัญชีอย่างชัดเจน</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>3. Functional Requirements (FR-01 .. FR-12 — เรียงตาม Sprint 1 &rarr; Sprint 2 &rarr; Sprint 3)</h3>
+    <table>
+      <thead>
+        <tr><th style="width: 85px;">ID</th><th>Requirement Description (Observable Behavior)</th><th style="width: 95px;">Sprint</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>FR-01</code></td><td><strong>Authentication &amp; Session Identity:</strong> ผู้ใช้สามารถ Login ด้วย Email/Password, ตรวจสอบตัวตนและ Role ปัจจุบัน (<code>GET /api/auth/me</code> คืนค่า <code>USER</code> หรือ <code>ADMIN</code>) และ Logout เพื่อล้าง Session Cookie ได้</td><td><span class="badge badge-emerald">Sprint 1</span></td></tr>
+        <tr><td><code>FR-02</code></td><td><strong>Custom Expense Folders / Wallets:</strong> <code>USER</code> สามารถสร้างโฟลเดอร์บันทึกเงินส่วนตัว (ระบุชื่อ, ประเภท, สี, ไอคอน และยอดเงินตั้งต้น <code>&gt;= 0</code>), ดูยอดคงเหลือแต่ละโฟลเดอร์และยอดรวมสุทธิ รวมถึงกดเก็บโฟลเดอร์เข้ากรุ (<code>Archive</code>) แบบ Double-Check ได้</td><td><span class="badge badge-emerald">Sprint 1</span></td></tr>
+        <tr><td><code>FR-03</code></td><td><strong>Atomic Income &amp; Expense Transaction Logging:</strong> <code>USER</code> บันทึกรายรับ-รายจ่ายลงโฟลเดอร์ผ่านฟอร์มมาตรฐาน (ระบุหมวดหมู่ จำนวนเงิน วันที่ และบันทึกช่วยจำ) โดยระบบตรวจสอบประเภทหมวดหมู่และปรับยอด <code>current_balance</code> ทันทีแบบ Atomic</td><td><span class="badge badge-emerald">Sprint 1</span></td></tr>
+        <tr><td><code>FR-04</code></td><td><strong>Self-Service Double-Check Move &amp; Cancel Transaction:</strong> <code>USER</code> สามารถกดยกเลิกรายการ (<code>Cancel</code>) หรือย้ายรายการไปอีกโฟลเดอร์ (<code>Move</code>) ได้ด้วยตนเองผ่านขั้นตอน Double-Check (แสดงยอดเงินก่อน-หลัง และส่ง <code>confirmed: true</code>) โดยไม่ต้องพิมพ์เหตุผลและไม่ต้องรอ Admin</td><td><span class="badge badge-emerald">Sprint 1</span></td></tr>
+        <tr><td><code>FR-05</code></td><td><strong>Trash History &amp; Double-Check Restore:</strong> รายการที่ถูกยกเลิก (<code>CANCELED</code>) จะแสดงในแท็บถังขยะ (Trash History) โดย <code>USER</code> สามารถกดกู้คืน (<code>Restore</code>) แบบ Double-Check เพื่อนำรายการกลับมาคิดเงินตามเดิมได้</td><td><span class="badge badge-emerald">Sprint 1</span></td></tr>
+        <tr><td><code>FR-06</code></td><td><strong>Daily Safe-to-Spend, Search/Filter &amp; Admin Catalog/Templates:</strong> <code>USER</code> ตั้งงบรวมประจำเดือน (หรือเลือกใช้สูตรจัดงบจาก <code>ADMIN</code>) เพื่อดูตัวเลข <em>"งบที่ใช้ได้ในวันนี้ (Daily Safe-to-Spend)"</em>, กราฟสัดส่วนรายจ่าย และตัวกรองค้นหา; ส่วน <code>ADMIN</code> จัดการหมวดหมู่กลางและสูตรจัดงบแนะนำได้</td><td><span class="badge badge-emerald">Sprint 1</span></td></tr>
+        <tr><td><code>FR-07</code></td><td><strong>Category Budget Envelopes &amp; Over-Budget Guardrail:</strong> <code>USER</code> ซอยงบรายเดือนแยกตามหมวดหมู่ย่อย พร้อมแถบสีสถานะ (เขียว/เหลือง/แดง) และการเตือนแบบ Double-Check เมื่อรายจ่ายทะลุงบ</td><td><span class="badge badge-amber">Sprint 2</span></td></tr>
+        <tr><td><code>FR-08</code></td><td><strong>Atomic Inter-Wallet Transfer:</strong> <code>USER</code> โอนเงินข้ามระหว่างโฟลเดอร์ 2 ใบของตนเองโดยหักต้นทางและบวกปลายทางพร้อมกันแบบ Atomic</td><td><span class="badge badge-amber">Sprint 2</span></td></tr>
+        <tr><td><code>FR-09</code></td><td><strong>Savings Goal Jars &amp; Target Predictor:</strong> <code>USER</code> สร้างกระปุกออมเงินตามเป้าหมาย จัดสรรเงินเข้ากระปุก (<code>SAVINGS_ALLOCATION</code>) และดูจำนวนวันที่คาดว่าจะออมครบเป้า</td><td><span class="badge badge-amber">Sprint 2</span></td></tr>
+        <tr><td><code>FR-10</code></td><td><strong>Recurring Bills &amp; Monthly Due Reminder:</strong> <code>USER</code> ตั้งรายการบิลประจำเดือน (เช่น ค่าหอ, ค่าไฟ, อินเทอร์เน็ต) เพื่อรับการแจ้งเตือนเมื่อใกล้ถึงวันครบกำหนดชำระ</td><td><span class="badge badge-indigo">Sprint 3</span></td></tr>
+        <tr><td><code>FR-11</code></td><td><strong>Financial Analytics Dashboard &amp; CSV Export:</strong> แสดงกราฟสรุป Cashflow รายเดือน/รายวัน เปรียบเทียบเดือนก่อนหน้า และส่งออกรายการเดินบัญชีเป็นไฟล์ CSV</td><td><span class="badge badge-indigo">Sprint 3</span></td></tr>
+        <tr><td><code>FR-12</code></td><td><strong>Fiscal Month-End Lock &amp; Admin Unlock Recovery:</strong> <code>USER</code> สั่งล็อกงวดบัญชีสิ้นเดือน (<code>CLOSED</code>) เพื่อกันการเผลอแก้ข้อมูลเดือนเก่า และสามารถส่งคำขอให้ <code>ADMIN</code> ช่วยปลดล็อกเมื่อเผลอกดล็อกผิดได้</td><td><span class="badge badge-indigo">Sprint 3</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>4. Business Rules (BR-01 .. BR-08) — อุดช่องโหว่ครบทั้ง 6 จุด</h3>
+    <table>
+      <thead>
+        <tr><th style="width: 85px;">ID</th><th>Business Rule Definition &amp; Validation Enforcement</th><th style="width: 95px;">Sprint</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>BR-01</code></td>
+          <td><strong>Monetary Precision, Initial Balance &amp; Category Type Match:</strong> จำนวนเงินธุรกรรม (<code>amount</code>) ต้อง <code>&gt; 0.00</code> ทศนิยมไม่เกิน 2 ตำแหน่ง; ยอดเงินตั้งต้นตอนสร้างโฟลเดอร์ (<code>initial_balance</code>) ต้อง <code>&gt;= 0.00</code>; และประเภทธุรกรรม (<code>INCOME</code> | <code>EXPENSE</code>) ต้องตรงกับประเภทของหมวดหมู่ (<code>category.type</code>) เสมอ มิฉะนั้นปฏิเสธด้วย <code>422 CATEGORY_TYPE_MISMATCH</code></td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>BR-02</code></td>
+          <td><strong>No Folder Overdraft &amp; Atomic Concurrency Rule:</strong> ห้ามบันทึกรายจ่าย (<code>EXPENSE</code>) ที่มากกว่า <code>current_balance</code> ของโฟลเดอร์ (ปฏิเสธด้วย <code>422 INSUFFICIENT_WALLET_BALANCE</code>) และต้องใช้ Atomic Conditional Row Update ใน Database Transaction เพื่อป้องกัน Race Condition จากการยิงตัดเงินพร้อมกัน</td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>BR-03</code></td>
+          <td><strong>Bidirectional Role &amp; Strict Personal Privacy Isolation:</strong><br/>
+          • <code>USER</code> เข้าถึงและแก้ไขได้เฉพาะโฟลเดอร์และรายการของตนเองเท่านั้น (ห้ามดูของ <code>USER</code> คนอื่น &rarr; <code>403 FORBIDDEN</code>) และห้ามเรียก API จัดการหมวดหมู่กลางหรือสูตรจัดงบของ <code>ADMIN</code> (<code>403 FORBIDDEN</code>)<br/>
+          • <code>ADMIN</code> <strong>ห้ามเปิดดูโฟลเดอร์หรือรายการรายรับ-รายจ่ายส่วนตัวของ <code>USER</code> เด็ดขาด</strong> (<code>403 FORBIDDEN</code>) และห้ามสร้าง/ย้าย/ยกเลิกรายการเงินของ <code>USER</code></td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>BR-04</code></td>
+          <td><strong>Double-Check Move Transaction Two-Way Balance Sufficiency:</strong> การย้ายรายการข้ามโฟลเดอร์ (<code>POST /api/transactions/:id/move</code>) ต้องส่งธงยืนยัน <code>confirmed: true</code> (มิฉะนั้นคืน <code>400 CONFIRMATION_REQUIRED</code>), โฟลเดอร์ต้นทางและปลายทางต้องเป็นคนละใบกันและเป็นของ <code>USER</code> คนเดียวกัน:<br/>
+          • ถ้าย้ายรายการ <code>EXPENSE</code> จากโฟลเดอร์ A &rarr; B: ต้องเช็กว่า <code>B.current_balance &gt;= amount</code> (ถ้าไม่พอคืน <code>422 INSUFFICIENT_TARGET_BALANCE</code>) แล้วคืนเงินให้ A พร้อมหักเงินจาก B แบบ Atomic<br/>
+          • ถ้าย้ายรายการ <code>INCOME</code> จากโฟลเดอร์ A &rarr; B: ต้องเช็กว่า <code>A.current_balance &gt;= amount</code> (ถ้าเงินใน A ถูกใช้ไปจนไม่พอให้ดึงออก คืน <code>422 INSUFFICIENT_SOURCE_BALANCE</code>) แล้วหักเงินจาก A พร้อมบวกเงินเข้า B แบบ Atomic</td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>BR-05</code></td>
+          <td><strong>Double-Check Cancel &amp; Trash Restore Balance Integrity:</strong><br/>
+          • การยกเลิกรายการ (<code>POSTED &rarr; CANCELED</code>) และการกู้คืนจากถังขยะ (<code>CANCELED &rarr; POSTED</code>) ต้องส่ง <code>confirmed: true</code> และห้ามกดซ้ำในสถานะเดิม (<code>409 INVALID_TRANSACTION_STATE</code>)<br/>
+          • ถ้ายกเลิกรายการ <code>INCOME</code>: ยอดคงเหลือปัจจุบันในโฟลเดอร์ต้อง <code>&gt;= amount</code> เพื่อให้หักเงินออกได้โดยไม่ติดลบ (<code>422 INSUFFICIENT_BALANCE_TO_CANCEL</code>)<br/>
+          • ถ้ากู้คืน (<code>Restore</code>) รายการ <code>EXPENSE</code> จากถังขยะ: ยอดคงเหลือปัจจุบันในโฟลเดอร์ต้อง <code>&gt;= amount</code> เพื่อให้หักเงินใหม่ได้โดยไม่ติดลบ (<code>422 INSUFFICIENT_BALANCE_TO_RESTORE</code>)</td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>BR-06</code></td>
+          <td><strong>Double-Check Folder Archive Protection:</strong> โฟลเดอร์ที่มีรายการธุรกรรมอยู่ข้างในห้ามลบออกจากฐานข้อมูลโดยตรง แต่ต้องใช้การเก็บเข้ากรุ (<code>Archive</code>) แบบ Double-Check หรือย้ายรายการออกก่อน เพื่อรักษาความถูกต้องของยอดสรุปรายเดือน</td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>BR-07</code></td>
+          <td><strong>Savings Allocation Separation &amp; Distinct Transfer Rule:</strong> การโอนเงินข้ามโฟลเดอร์ (<code>F-08</code>) และการหยอดกระปุกออมเงิน (<code>F-09</code>) ต้องไม่ถูกนับรวมเป็นรายจ่ายสิ้นเปลือง (<code>EXPENSE</code>) ในกราฟค่าใช้จ่ายรายเดือน</td>
+          <td>Sprint 2</td>
+        </tr>
+        <tr>
+          <td><code>BR-08</code></td>
+          <td><strong>Closed Fiscal Period Immutability:</strong> ห้ามเพิ่ม ย้าย ยกเลิก หรือกู้คืนธุรกรรมในเดือนที่ถูกสั่งปิดงวดบัญชี (<code>CLOSED</code>) แล้ว (<code>422 PERIOD_CLOSED</code>) จนกว่าจะได้รับการปลดล็อก</td>
+          <td>Sprint 3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>5. Non-Functional Requirements (NFR-01 .. NFR-05)</h3>
+    <table>
+      <thead>
+        <tr><th style="width: 85px;">ID</th><th>Category</th><th>Measurable Target &amp; Specification</th><th>Practical Verification Method</th><th style="width: 95px;">Sprint</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>NFR-01</code></td>
+          <td>Security &amp; RBAC</td>
+          <td><strong>100% Backend Authorization &amp; Privacy Enforcement:</strong> ทุก Protected Endpoint ต้องปฏิเสธคำขอที่ไม่มี Token ด้วย <code>401</code> และปฏิเสธการละเมิด Role/Ownership ด้วย <code>403</code> โดยไม่หลุดข้อมูลโฟลเดอร์ส่วนตัวของ <code>USER</code> ไปยังคนอื่นหรือ <code>ADMIN</code></td>
+          <td>API Integration Tests (<code>TEST-02</code>, <code>TEST-04</code>, <code>TEST-11</code>, <code>TEST-12</code>)</td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>NFR-02</code></td>
+          <td>Data Integrity &amp; ACID</td>
+          <td><strong>Zero Balance Drift &amp; Race-Condition Safe:</strong> การบันทึกธุรกรรม, การย้ายโฟลเดอร์ (<code>Move</code>), การยกเลิก (<code>Cancel</code>), และการกู้คืน (<code>Restore</code>) ต้องปรับยอด <code>current_balance</code> ภายใน ACID Transaction เดียวกัน (<code>DECIMAL(12,2)</code>)</td>
+          <td>Integration &amp; Concurrency Tests (<code>TEST-05..TEST-10</code>)</td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>NFR-03</code></td>
+          <td>Credential Security</td>
+          <td><strong>Password Hashing &amp; Cookie Safety:</strong> รหัสผ่านต้อง Hash ด้วย <code>bcrypt</code> (cost factor &ge; 10) และส่ง Session JWT ผ่าน <code>HttpOnly; SameSite=Lax</code> Cookie เท่านั้น</td>
+          <td>Database Seed Inspection &amp; Auth Integration Test (<code>TEST-01</code>)</td>
+          <td>Sprint 1</td>
+        </tr>
+        <tr>
+          <td><code>NFR-04</code></td>
+          <td>Performance</td>
+          <td><strong>API Response Latency:</strong> การดึงรายการเดินบัญชี คำนวณงบรายวัน และสรุปยอดแดชบอร์ด (สำหรับข้อมูลไม่เกิน 1,000 รายการ) ต้องใช้เวลาตอบสนอง <code>p95 &lt; 300ms</code> บนเครื่อง Local</td>
+          <td>Automated API Benchmark / Response Timer Assertion</td>
+          <td>Sprint 3</td>
+        </tr>
+        <tr>
+          <td><code>NFR-05</code></td>
+          <td>Portability &amp; Config</td>
+          <td><strong>12-Factor Environment Config:</strong> ไม่มีการ Hardcode Secrets ใน Git และพร้อมสำหรับบรรจุลง Docker Container เพื่อขึ้น Google Cloud Run ใน Lab 5</td>
+          <td>Codebase Secret Scan &amp; Docker Build Check</td>
+          <td>Sprint 3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ===================================================== -->
+    <!-- PART B: FEATURE INVENTORY & TRACEABILITY (10 POINTS)  -->
+    <!-- ===================================================== -->
+    <h2>
+      <span>Part B: Feature Inventory &amp; Traceability (12 Golden Features)</span>
+      <span class="badge badge-indigo">10 คะแนน | Suggested Artifacts: docs/features.md &amp; docs/traceability.md</span>
+    </h2>
+
+    <h3>1. Product Feature Inventory (F-01 .. F-12 — เรียงตาม Sprint 1 &rarr; Sprint 2 &rarr; Sprint 3 ไม่ข้ามเลข)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 70px;">ID</th>
+          <th style="width: 220px;">Feature Name</th>
+          <th>Short Description</th>
+          <th style="width: 135px;">Related Req IDs</th>
+          <th style="width: 100px;">Dependencies</th>
+          <th style="width: 85px;">Sprint</th>
+          <th style="width: 150px;">Sprint 1 Verification</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>F-01</code></td>
+          <td><strong>Authentication &amp; Role-Based Session Guard</strong></td>
+          <td>ระบบ Login/Logout ด้วย <code>HttpOnly</code> Cookie, ตรวจสอบตัวตนปัจจุบัน และกั้นสิทธิ์ระหว่าง <code>USER</code> กับ <code>ADMIN</code></td>
+          <td><code>FR-01, BR-03, NFR-01, NFR-03</code></td>
+          <td>None</td>
+          <td><span class="badge badge-emerald">Sprint 1</span></td>
+          <td><code>AC-01, AC-02</code><br/><code>TEST-01, TEST-02</code></td>
+        </tr>
+        <tr>
+          <td><code>F-02</code></td>
+          <td><strong>Custom Expense Folders / Wallets &amp; Archive Guard</strong></td>
+          <td><code>USER</code> สร้างโฟลเดอร์บันทึกเงิน (เลือกสี/ไอคอนได้), ดูยอดรวมสุทธิ และเก็บโฟลเดอร์เข้ากรุ (<code>Archive</code>) แบบ Double-Check</td>
+          <td><code>FR-02, BR-01, BR-03, BR-06</code></td>
+          <td>Requires <code>F-01</code></td>
+          <td><span class="badge badge-emerald">Sprint 1</span></td>
+          <td><code>AC-03, AC-04</code><br/><code>TEST-03, TEST-04</code></td>
+        </tr>
+        <tr>
+          <td><code>F-03</code></td>
+          <td><strong>Atomic Income &amp; Expense Transaction Logging</strong></td>
+          <td><code>USER</code> จดบันทึกรายรับ-รายจ่ายแบบ Atomic ผ่านฟอร์มมาตรฐาน พร้อมเช็กหมวดหมู่และบล็อกยอดติดลบ (<code>422</code>)</td>
+          <td><code>FR-03, BR-01, BR-02, NFR-02</code></td>
+          <td>Requires <code>F-01, F-02</code></td>
+          <td><span class="badge badge-emerald">Sprint 1</span></td>
+          <td><code>AC-05, AC-06, AC-07</code><br/><code>TEST-05, TEST-06, TEST-07</code></td>
+        </tr>
+        <tr>
+          <td><code>F-04</code></td>
+          <td><strong>Self-Service Double-Check Move &amp; Cancel Transaction</strong></td>
+          <td><code>USER</code> กดยกเลิกรายการ (<code>Cancel</code>) หรือย้ายรายการข้ามโฟลเดอร์ (<code>Move</code>) ด้วยตัวเองผ่านหน้าต่าง Double-Check สรุปยอดก่อน-หลัง</td>
+          <td><code>FR-04, BR-04, BR-05, NFR-02</code></td>
+          <td>Requires <code>F-02, F-03</code></td>
+          <td><span class="badge badge-emerald">Sprint 1</span></td>
+          <td><code>AC-08, AC-09</code><br/><code>TEST-08, TEST-09</code></td>
+        </tr>
+        <tr>
+          <td><code>F-05</code></td>
+          <td><strong>Trash History &amp; Double-Check Restore</strong></td>
+          <td>ถังขยะแสดงรายการที่ยกเลิกไปแล้ว เพื่อให้ <code>USER</code> กดกู้คืน (<code>Restore</code>) แบบ Double-Check พร้อมเช็กยอดเงินไม่ให้ติดลบ</td>
+          <td><code>FR-05, BR-05, NFR-02</code></td>
+          <td>Requires <code>F-03, F-04</code></td>
+          <td><span class="badge badge-emerald">Sprint 1</span></td>
+          <td><code>AC-10</code><br/><code>TEST-10</code></td>
+        </tr>
+        <tr>
+          <td><code>F-06</code></td>
+          <td><strong>Daily Safe-to-Spend, Search/Filter &amp; Admin Catalog/Templates</strong></td>
+          <td>คำนวณงบที่ใช้ได้ในวันนี้, กราฟสัดส่วนรายจ่าย, ช่องค้นหา/กรองรายการ; และฝั่ง <code>ADMIN</code> จัดการหมวดหมู่กลาง &amp; สูตรจัดงบแนะนำ</td>
+          <td><code>FR-06, BR-03, NFR-01</code></td>
+          <td>Requires <code>F-01..F-03</code></td>
+          <td><span class="badge badge-emerald">Sprint 1</span></td>
+          <td><code>AC-11, AC-12</code><br/><code>TEST-11, TEST-12</code></td>
+        </tr>
+        <tr>
+          <td><code>F-07</code></td>
+          <td><strong>Category Budget Envelopes &amp; Double-Check Over-Budget Alert</strong></td>
+          <td>ตั้งงบรายหมวดหมู่ย่อย แสดงแถบสีสถานะ (เขียว/เหลือง/แดง) และเตือนแบบ Double-Check เมื่อรายจ่ายทะลุงบ</td>
+          <td><code>FR-07</code></td>
+          <td>Requires <code>F-03, F-06</code></td>
+          <td><span class="badge badge-amber">Sprint 2</span></td>
+          <td>Allocated to Sprint 2</td>
+        </tr>
+        <tr>
+          <td><code>F-08</code></td>
+          <td><strong>Atomic Inter-Wallet Transfer</strong></td>
+          <td>โอนเงินข้ามระหว่างโฟลเดอร์ 2 ใบของตัวเองแบบ Atomic โดยไม่นับรวมเป็นรายจ่ายสิ้นเปลือง</td>
+          <td><code>FR-08, BR-07</code></td>
+          <td>Requires <code>F-02, F-03</code></td>
+          <td><span class="badge badge-amber">Sprint 2</span></td>
+          <td>Allocated to Sprint 2</td>
+        </tr>
+        <tr>
+          <td><code>F-09</code></td>
+          <td><strong>Savings Goal Jars &amp; Target Predictor</strong></td>
+          <td>สร้างกระปุกออมเงินตามเป้าหมาย หยอดกระปุกและคำนวณวันที่จะเก็บเงินครบเป้า</td>
+          <td><code>FR-09, BR-07</code></td>
+          <td>Requires <code>F-02, F-08</code></td>
+          <td><span class="badge badge-amber">Sprint 2</span></td>
+          <td>Allocated to Sprint 2</td>
+        </tr>
+        <tr>
+          <td><code>F-10</code></td>
+          <td><strong>Recurring Bills &amp; Monthly Due Reminder</strong></td>
+          <td>ตั้งรายการบิลประจำเดือนและค่าสมาชิก พร้อมระบบแจ้งเตือนเมื่อใกล้ถึงวันครบกำหนดชำระ</td>
+          <td><code>FR-10</code></td>
+          <td>Requires <code>F-03</code></td>
+          <td><span class="badge badge-indigo">Sprint 3</span></td>
+          <td>Allocated to Sprint 3</td>
+        </tr>
+        <tr>
+          <td><code>F-11</code></td>
+          <td><strong>Financial Analytics Dashboard &amp; CSV Export</strong></td>
+          <td>แดชบอร์ดกราฟวิเคราะห์รายเดือน/รายวัน เปรียบเทียบเดือนก่อนหน้า และส่งออกไฟล์ Excel/CSV</td>
+          <td><code>FR-11, NFR-04</code></td>
+          <td>Requires <code>F-03, F-07</code></td>
+          <td><span class="badge badge-indigo">Sprint 3</span></td>
+          <td>Allocated to Sprint 3</td>
+        </tr>
+        <tr>
+          <td><code>F-12</code></td>
+          <td><strong>Fiscal Month-End Closing Lock &amp; Admin Unlock</strong></td>
+          <td>ล็อกงวดบัญชีสิ้นเดือน (<code>CLOSED</code>) กันการเผลอแก้รายการย้อนหลัง พร้อมระบบขอ <code>ADMIN</code> ปลดล็อกเมื่อกดผิด</td>
+          <td><code>FR-12, BR-08, NFR-05</code></td>
+          <td>Requires <code>F-03..F-06</code></td>
+          <td><span class="badge badge-indigo">Sprint 3</span></td>
+          <td>Allocated to Sprint 3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ========================================== -->
+    <!-- PART C: SYSTEM-LEVEL SDS (15 POINTS)       -->
+    <!-- ========================================== -->
+    <h2>
+      <span>Part C: System-Level SDS &amp; Diagrams</span>
+      <span class="badge badge-indigo">15 คะแนน | Suggested Artifact: docs/system-sds.md</span>
+    </h2>
+
+    <h3>1. System Architecture Diagram</h3>
+    <div class="mermaid">
+flowchart LR
+    subgraph Client["UI Layer (Next.js React + Tailwind CSS)"]
+        UI_Auth["Login &amp; Session Context"]
+        UI_User["User Folder, Transaction Form, Double-Check Modal &amp; Trash UI"]
+        UI_Admin["Admin Category &amp; Budget Template Console"]
+    end
+
+    subgraph Backend["API &amp; Domain Layer (Node.js + TypeScript)"]
+        AuthMW["Auth &amp; Bidirectional RBAC Guard"]
+        WalletSvc["Personal Folder &amp; Safe-to-Spend Service"]
+        LedgerSvc["Atomic Ledger, Double-Check Move/Cancel &amp; Restore Service"]
+        AdminSvc["Admin Category &amp; Budget Template Service"]
+    end
+
+    subgraph Data["Database Layer (PostgreSQL + Prisma)"]
+        DB[("PostgreSQL (ACID + Decimal 12,2)")]
+    end
+
+    UI_Auth --> AuthMW
+    UI_User --> AuthMW
+    UI_Admin --> AuthMW
+    AuthMW --> WalletSvc
+    AuthMW --> LedgerSvc
+    AuthMW --> AdminSvc
+    WalletSvc --> DB
+    LedgerSvc --> DB
+    AdminSvc --> DB
+    </div>
+
+    <h3>2. Entity-Relationship (ER) Diagram</h3>
+    <div class="mermaid">
+erDiagram
+    USERS ||--o{ WALLETS : "owns (owner_id)"
+    USERS ||--o{ TRANSACTIONS : "creates (created_by)"
+    WALLETS ||--o{ TRANSACTIONS : "records (wallet_id)"
+    CATEGORIES ||--o{ TRANSACTIONS : "classifies (category_id)"
+    BUDGET_TEMPLATES ||--o{ USERS : "applied_by"
+
+    USERS {
+        uuid id PK
+        string email UK
+        string password_hash
+        string full_name
+        string role "USER | ADMIN"
+        decimal monthly_budget_target "DEFAULT 10000.00"
+        timestamp created_at
+    }
+    WALLETS {
+        uuid id PK
+        uuid owner_id FK
+        string name
+        string wallet_type "CASH | BANK | EWALLET | POCKET"
+        string color_hex
+        string icon_name
+        decimal initial_balance "CHECK >= 0.00"
+        decimal current_balance "CHECK >= 0.00"
+        boolean is_archived "DEFAULT false"
+        timestamp created_at
+    }
+    CATEGORIES {
+        uuid id PK
+        string name UK
+        string type "INCOME | EXPENSE"
+        string icon_name
+        boolean is_system
+    }
+    TRANSACTIONS {
+        uuid id PK
+        uuid wallet_id FK
+        uuid category_id FK
+        uuid created_by FK
+        string type "INCOME | EXPENSE | TRANSFER"
+        decimal amount "CHECK > 0.00"
+        string status "POSTED | CANCELED"
+        string note
+        date transaction_date
+        timestamp canceled_at "Nullable (In Trash when CANCELED)"
+        timestamp created_at
+    }
+    BUDGET_TEMPLATES {
+        uuid id PK
+        string name UK
+        decimal recommended_monthly_budget
+        string description
+        uuid created_by FK "Admin ID"
+    }
+    </div>
+
+    <h3>3. Bidirectional Role &amp; Permission Matrix (<code>USER</code> vs <code>ADMIN</code>)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Endpoint / Protected Operation</th>
+          <th>Guest (No Token)</th>
+          <th>USER (Own Folder/Tx)</th>
+          <th>USER (Other User's Folder/Tx)</th>
+          <th>ADMIN (System Catalog &amp; Templates)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET /api/categories</code> &amp; <code>GET /api/budget-templates</code></td>
+          <td>❌ <code>401</code></td>
+          <td>✅ <code>200 OK</code></td>
+          <td>N/A</td>
+          <td>✅ <code>200 OK</code></td>
+        </tr>
+        <tr>
+          <td><code>POST /api/categories</code> &amp; <code>POST /api/budget-templates</code> <span class="badge badge-purple">Admin Only</span></td>
+          <td>❌ <code>401</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+          <td>✅ <code>201 Created</code></td>
+        </tr>
+        <tr>
+          <td><code>GET /api/wallets</code> &amp; <code>POST /api/wallets</code></td>
+          <td>❌ <code>401</code></td>
+          <td>✅ <code>200 / 201</code> (ของตัวเอง)</td>
+          <td>❌ ไม่ถูกดึงมาแสดง</td>
+          <td>❌ <code>403 Forbidden</code> (Admin ห้ามยุ่งกระเป๋าส่วนตัว)</td>
+        </tr>
+        <tr>
+          <td><code>GET /api/wallets/:id/transactions</code></td>
+          <td>❌ <code>401</code></td>
+          <td>✅ <code>200 OK</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+        </tr>
+        <tr>
+          <td><code>POST /api/transactions</code> (Log Income/Expense)</td>
+          <td>❌ <code>401</code></td>
+          <td>✅ <code>201 Created</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+        </tr>
+        <tr>
+          <td><code>POST /api/transactions/:id/move</code> (Double-Check Move Folder)</td>
+          <td>❌ <code>401</code></td>
+          <td>✅ <code>200 OK</code> (<code>confirmed: true</code>)</td>
+          <td>❌ <code>403 Forbidden</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+        </tr>
+        <tr>
+          <td><code>POST /api/transactions/:id/cancel</code> (Double-Check Cancel to Trash)</td>
+          <td>❌ <code>401</code></td>
+          <td>✅ <code>200 OK</code> (<code>confirmed: true</code>)</td>
+          <td>❌ <code>403 Forbidden</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+        </tr>
+        <tr>
+          <td><code>POST /api/transactions/:id/restore</code> (Double-Check Restore from Trash)</td>
+          <td>❌ <code>401</code></td>
+          <td>✅ <code>200 OK</code> (<code>confirmed: true</code>)</td>
+          <td>❌ <code>403 Forbidden</code></td>
+          <td>❌ <code>403 Forbidden</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ========================================== -->
+    <!-- PART D: THREE-SPRINT PLAN (5 POINTS)       -->
+    <!-- ========================================== -->
+    <h2>
+      <span>Part D: Three-Sprint Plan &amp; Project Timeline (6 + 3 + 3 Allocation)</span>
+      <span class="badge badge-indigo">5 คะแนน | Suggested Artifact: docs/sprints/plan.md</span>
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 85px;">Sprint</th>
+          <th style="width: 155px;">Checkpoint / Due Date</th>
+          <th>Sprint Goal &amp; Scope Explanation</th>
+          <th style="width: 130px;">Included Features</th>
+          <th style="width: 130px;">Key Dependencies</th>
+          <th>Required Completion Outcome</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Sprint 1</strong></td>
+          <td><strong>Deliverable 1</strong><br/>8 Nov 2026</td>
+          <td><strong>Interactive Personal Expense Hub &amp; Double-Check Engine:</strong> ระบบ Login (<code>USER</code>/<code>ADMIN</code>), โฟลเดอร์บันทึกเงินเลือกสี/ไอคอน, จดรายรับ-รายจ่ายแบบ Atomic, ระบบ Double-Check ยกเลิก/ย้ายโฟลเดอร์/กู้คืนจากถังขยะ, คำนวณงบรายวัน (Daily Safe-to-Spend) และฝั่ง Admin จัดการหมวดหมู่ &amp; สูตรจัดงบ</td>
+          <td><code>F-01, F-02, F-03, F-04, F-05, F-06</code></td>
+          <td>Database Schema &amp; Seed Baseline</td>
+          <td>Working vertical slice บน <code>main</code> พร้อมชุดทดสอบ <code>TEST-01..12</code>, TDD Evidence และ PR Review ครบ 2 คน</td>
+        </tr>
+        <tr>
+          <td><strong>Sprint 2</strong></td>
+          <td><strong>Deliverable 2</strong><br/>29 Nov 2026</td>
+          <td><strong>Category Envelopes, Transfers &amp; Savings Jars:</strong> ซองงบประมาณแยกตามหมวดหมู่ย่อยพร้อมแถบสีเปลี่ยนสถานะ &amp; เตือนเมื่อเกินงบ, โอนเงินข้ามโฟลเดอร์ และกระปุกออมเงินตามเป้าหมาย</td>
+          <td><code>F-07, F-08, F-09</code></td>
+          <td>Requires <code>F-01..F-06</code></td>
+          <td>ขยายฟีเจอร์ครบตามสัญญา พร้อม Docker, CI/CD และ GCP Deployment ตามเกณฑ์ Lab 5 / Deliverable 2</td>
+        </tr>
+        <tr>
+          <td><strong>Sprint 3</strong></td>
+          <td><strong>Final Release</strong><br/>13 Dec 2026</td>
+          <td><strong>Recurring Bills, Analytics &amp; Month-End Lock:</strong> แจ้งเตือนบิลประจำเดือน, แดชบอร์ดกราฟวิเคราะห์ + ส่งออก CSV และระบบล็อกงวดบัญชีสิ้นเดือน</td>
+          <td><code>F-10, F-11, F-12</code></td>
+          <td>Requires <code>F-03..F-09</code></td>
+          <td>ผลิตภัณฑ์สมบูรณ์ครบทั้ง 12 ฟีเจอร์ พร้อมผ่านการทดสอบ E2E และ Performance</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ======================================================== -->
+    <!-- PART E: SPRINT 1 ENGINEERING CONTRACTS (20 POINTS)       -->
+    <!-- ======================================================== -->
+    <h2>
+      <span>Part E: Sprint 1 Engineering Contracts, AC, STS &amp; DoD</span>
+      <span class="badge badge-indigo">20 คะแนน | Suggested Artifacts: docs/sprints/sprint-1/</span>
+    </h2>
+
+    <h3>1. Engineering Contract Version History</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 90px;">Version</th>
+          <th style="width: 120px;">Date</th>
+          <th style="width: 160px;">Author / Reviewer</th>
+          <th>Summary of Specification Changes &amp; Justification</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>v1.0</code></td>
+          <td>2026-11-01</td>
+          <td>Both Team Members</td>
+          <td><strong>Initial Baseline Contract:</strong> กำหนดสัญญาเริ่มต้นของระบบยืนยันตัวตน กระเป๋าเงิน และการบันทึกธุรกรรม</td>
+        </tr>
+        <tr>
+          <td><code>v1.2</code></td>
+          <td>2026-11-02</td>
+          <td>Both Team Members</td>
+          <td><strong>USER &amp; ADMIN Role Separation:</strong> แยกบทบาทเป็น <code>USER</code> (เจ้าของกระเป๋าส่วนตัว 100%) และ <code>ADMIN</code> (ดูแลหมวดหมู่กลางของระบบ)</td>
+        </tr>
+        <tr>
+          <td><code>v2.0</code></td>
+          <td>2026-11-03</td>
+          <td>Both Team Members</td>
+          <td><strong>Self-Service Double-Check &amp; 12 Golden Features:</strong> ปรับการยกเลิกรายการ (<code>Cancel</code>), การย้ายโฟลเดอร์ (<code>Move</code>), และการกู้คืนจากถังขยะ (<code>Restore</code>) ให้เป็นรูปแบบ <strong>Double-Check (<code>confirmed: true</code>) โดย <code>USER</code> เอง</strong> พร้อมเช็กยอดคงเหลือทั้งสองทาง และเพิ่มตัวคำนวณ <code>Daily Safe-to-Spend</code> กับ <code>Admin Budget Templates</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2. Sprint 1 Transaction &amp; Double-Check State Machine</h3>
+    <div class="mermaid">
+stateDiagram-v2
+    [*] --> POSTED : POST /api/transactions (Valid Amount, Category Match &amp; Balance &gt;= Expense)
+    [*] --> REJECTED_422 : Expense &gt; Balance (INSUFFICIENT_WALLET_BALANCE) or Category Mismatch
+    POSTED --> POSTED : POST /api/transactions/:id/move (Double-Check Move Folder A &lt;-&gt; B Atomic)
+    POSTED --> CANCELED : POST /api/transactions/:id/cancel (Double-Check Cancel -&gt; Moves to Trash &amp; Refunds Balance)
+    CANCELED --> POSTED : POST /api/transactions/:id/restore (Double-Check Restore from Trash if Balance Sufficient)
+    </div>
+
+    <h3>3. Sprint 1 Acceptance Criteria &amp; Software Test Specification (TEST-01 .. TEST-12)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 80px;">Test ID</th>
+          <th style="width: 65px;">AC</th>
+          <th style="width: 120px;">Test Level</th>
+          <th>Preconditions &amp; Input</th>
+          <th>Action</th>
+          <th>Expected Observable Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>TEST-01</code></td>
+          <td><code>AC-01</code></td>
+          <td>API Integration</td>
+          <td>Seeded user <code>user1@candycash.local</code> มีอยู่ใน DB</td>
+          <td><code>POST /api/auth/login</code> &rarr; <code>GET /api/auth/me</code> &rarr; <code>POST /api/auth/logout</code></td>
+          <td>Login ได้ <code>200</code> + Cookie, <code>/me</code> คืน Role <code>USER</code>, หลัง Logout เรียก <code>/me</code> ได้ <code>401</code></td>
+        </tr>
+        <tr>
+          <td><code>TEST-02</code></td>
+          <td><code>AC-02</code></td>
+          <td>API Integration</td>
+          <td>ไม่มี Session Cookie หรือส่งรหัสผ่านผิด</td>
+          <td>เรียก <code>GET /api/wallets</code> โดยไม่มี Cookie</td>
+          <td>คืนค่า <code>401 UNAUTHORIZED</code> และไม่มีข้อมูลโฟลเดอร์หลุดออกมา</td>
+        </tr>
+        <tr>
+          <td><code>TEST-03</code></td>
+          <td><code>AC-03</code></td>
+          <td>API / Unit</td>
+          <td>ล็อกอินเป็น <code>USER</code> (<code>user1</code>)</td>
+          <td>1) สร้างโฟลเดอร์ด้วย <code>initialBalance: 1000</code><br/>2) ส่ง <code>initialBalance: -50</code></td>
+          <td>1) สร้างสำเร็จ <code>201</code> ยอดเท่ากับ <code>1000.00</code><br/>2) ปฏิเสธด้วย <code>400 INVALID_INITIAL_BALANCE</code></td>
+        </tr>
+        <tr>
+          <td><code>TEST-04</code></td>
+          <td><code>AC-04</code></td>
+          <td>API Integration</td>
+          <td><code>user1</code> มีโฟลเดอร์ส่วนตัว; ล็อกอินเป็น <code>user2</code> และ <code>admin</code></td>
+          <td><code>user2</code> และ <code>admin</code> ยิงไปที่ <code>GET /api/wallets/:user1WalletId/transactions</code></td>
+          <td>ทั้ง <code>user2</code> และ <code>admin</code> ถูกบล็อกด้วย <code>403 FORBIDDEN</code> (โฟลเดอร์ส่วนตัวปลอดภัย 100%)</td>
+        </tr>
+        <tr>
+          <td><code>TEST-05</code></td>
+          <td><code>AC-05</code></td>
+          <td>API / E2E Journey</td>
+          <td>โฟลเดอร์ A ของ <code>user1</code> มียอดคงเหลือ <code>1000.00</code> บาท</td>
+          <td>บันทึก <code>INCOME 500.00</code> ตามด้วย <code>EXPENSE 200.00</code> ผ่านฟอร์มบันทึกธุรกรรม</td>
+          <td>ทั้งสองรายการมีสถานะ <code>POSTED</code> และยอดคงเหลืออัปเดตเป็น <code>1300.00</code> บาทตรงกัน</td>
+        </tr>
+        <tr>
+          <td><code>TEST-06</code></td>
+          <td><code>AC-06</code></td>
+          <td>Unit &amp; Concurrency Integration</td>
+          <td>โฟลเดอร์มียอดคงเหลือ <code>500.00</code> บาท</td>
+          <td>1) ยิง <code>EXPENSE 600.00</code><br/>2) ยิง <code>EXPENSE 400.00</code> พร้อมกัน 2 คำขอ (<code>Promise.all</code>)</td>
+          <td>1) ปฏิเสธ <code>422 INSUFFICIENT_WALLET_BALANCE</code><br/>2) สำเร็จ 1 คำขอ (เหลือ <code>100.00</code>) และอีกคำขอถูกบล็อกด้วย <code>422</code></td>
+        </tr>
+        <tr>
+          <td><code>TEST-07</code></td>
+          <td><code>AC-07</code></td>
+          <td>Unit / API</td>
+          <td>หมวดหมู่ <code>Salary</code> มี <code>type = 'INCOME'</code></td>
+          <td>บันทึกธุรกรรม <code>type: 'EXPENSE'</code> แต่ส่ง <code>categoryId</code> ของ <code>Salary</code> (หรือส่ง <code>amount: 0</code>)</td>
+          <td>ถูกปฏิเสธด้วย <code>422 CATEGORY_TYPE_MISMATCH</code> (และ <code>400 INVALID_AMOUNT</code> สำหรับยอด 0)</td>
+        </tr>
+        <tr>
+          <td><code>TEST-08</code></td>
+          <td><code>AC-08</code></td>
+          <td>Unit &amp; API Integration</td>
+          <td>โฟลเดอร์ A มี <code>700.00</code> (หลังจ่าย <code>EXPENSE 300.00</code>); โฟลเดอร์ B มี <code>1000.00</code>; โฟลเดอร์ C มี <code>100.00</code></td>
+          <td>1) ย้ายรายจ่าย <code>300.00</code> จาก A &rarr; C (เงินไม่พอ)<br/>2) ย้ายรายจ่าย <code>300.00</code> จาก A &rarr; B พร้อม <code>confirmed: true</code></td>
+          <td>1) ปฏิเสธด้วย <code>422 INSUFFICIENT_TARGET_BALANCE</code><br/>2) ย้ายสำเร็จ: โฟลเดอร์ A ได้เงินคืนเป็น <code>1000.00</code> และโฟลเดอร์ B เหลือ <code>700.00</code> แบบ Atomic</td>
+        </tr>
+        <tr>
+          <td><code>TEST-09</code></td>
+          <td><code>AC-09</code></td>
+          <td>Unit &amp; API Integration</td>
+          <td>โฟลเดอร์มียอด <code>800.00</code> หลังหักรายจ่าย <code>200.00</code> (<code>POSTED</code>)</td>
+          <td>1) เรียก <code>POST /cancel</code> โดยไม่ส่ง <code>confirmed: true</code><br/>2) เรียก <code>POST /cancel</code> พร้อม <code>confirmed: true</code></td>
+          <td>1) ปฏิเสธ <code>400 CONFIRMATION_REQUIRED</code><br/>2) สถานะเปลี่ยนเป็น <code>CANCELED</code> (เข้าถังขยะ) และยอดเงินกลับมาเป็น <code>1000.00</code></td>
+        </tr>
+        <tr>
+          <td><code>TEST-10</code></td>
+          <td><code>AC-10</code></td>
+          <td>Unit &amp; API Integration</td>
+          <td>มีรายการจ่าย <code>200.00</code> อยู่ในถังขยะ (<code>CANCELED</code>)</td>
+          <td>1) กด <code>POST /restore</code> ตอนโฟลเดอร์มีเงิน <code>1000.00</code> (<code>confirmed: true</code>)<br/>2) กด <code>POST /restore</code> ตอนโฟลเดอร์เหลือเงินแค่ <code>50.00</code></td>
+          <td>1) กู้คืนสำเร็จ (<code>POSTED</code>) ยอดหักเหลือ <code>800.00</code><br/>2) ปฏิเสธด้วย <code>422 INSUFFICIENT_BALANCE_TO_RESTORE</code></td>
+        </tr>
+        <tr>
+          <td><code>TEST-11</code></td>
+          <td><code>AC-11</code></td>
+          <td>API Integration</td>
+          <td>ล็อกอินเป็น <code>ADMIN</code></td>
+          <td>เรียก <code>POST /api/wallets</code>, <code>POST /api/transactions</code>, หรือ <code>POST /cancel</code></td>
+          <td>ถูกปฏิเสธด้วย <code>403 FORBIDDEN</code> ทั้งหมด (<code>ADMIN</code> ห้ามยุ่งกับโฟลเดอร์หรือธุรกรรมของ <code>USER</code>)</td>
+        </tr>
+        <tr>
+          <td><code>TEST-12</code></td>
+          <td><code>AC-12</code></td>
+          <td>API / E2E Bidirectional RBAC</td>
+          <td>ทดสอบสิทธิ์ฝั่ง <code>ADMIN</code> vs <code>USER</code> และการคำนวณงบรายวัน</td>
+          <td>1) <code>ADMIN</code> สร้างหมวดหมู่กลาง &amp; สูตรจัดงบ (<code>POST /api/categories</code>, <code>POST /api/budget-templates</code>)<br/>2) <code>USER</code> เรียก Endpoint เดียวกัน</td>
+          <td>1) <code>ADMIN</code> สร้างสำเร็จ (<code>201</code>)<br/>2) <code>USER</code> ถูกบล็อกด้วย <code>403 FORBIDDEN</code> (และ <code>USER</code> กดนำสูตรไปคำนวณ <code>Daily Safe-to-Spend</code> ได้ถูกต้อง)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ======================================================== -->
+    <!-- PART F: WORKING SPRINT 1 & VERIFICATION PLAN (20 POINTS) -->
+    <!-- ======================================================== -->
+    <h2>
+      <span>Part F: Working Sprint 1 Plan, Team Roles &amp; Execution Timeline</span>
+      <span class="badge badge-indigo">20 คะแนน | Execution Evidence, TDD &amp; Git Workflow</span>
+    </h2>
+
+    <h3>1. การแบ่งงานสมาชิก 2 คนแบบสลับกันทีละ Issue / PR (<code>6 Issues + 6 Feature PRs + 1 Release PR</code>)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 110px;">สมาชิก</th>
+          <th style="width: 240px;">Issues &amp; PRs ที่เป็นคนเขียนโค้ด (Author)</th>
+          <th>สิ่งที่ต้องส่งมอบ (Deliverables &amp; Tests)</th>
+          <th style="width: 220px;">PR ที่เป็นคนตรวจ &amp; Approve (Reviewer)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>คนที่ 1<br/>(หัวหน้า GitHub)</strong></td>
+          <td><strong>เลขคี่: <code>F-01</code>, <code>F-03</code>, <code>F-05</code></strong><br/>(<code>Issue #1 / PR #1</code>, <code>Issue #3 / PR #3</code>, <code>Issue #5 / PR #5</code> + <code>Release PR #7</code>)</td>
+          <td>
+            • <strong>Baseline:</strong> ตั้งค่า Repo, Docs, Prisma Schema &amp; Seed ลง <code>main</code> และ <code>staging</code><br/>
+            • <strong><code>F-01</code> (PR #1):</strong> ระบบ Login/Logout, JWT Cookie, RBAC Guard (<code>TEST-01, 02</code>)<br/>
+            • <strong><code>F-03</code> (PR #3):</strong> ฟอร์มบันทึกรายรับ-รายจ่าย Atomic + บล็อกยอดติดลบ (<code>TEST-05, 06, 07</code>)<br/>
+            • <strong><code>F-05</code> (PR #5):</strong> ถังขยะแสดงรายการที่ยกเลิกและกู้คืน (<code>Restore</code>) แบบ Double-Check (<code>TEST-10</code>)
+          </td>
+          <td>ตรวจและกด Approve ให้ <strong><code>PR #2</code> (<code>F-02</code>), <code>PR #4</code> (<code>F-04</code>), <code>PR #6</code> (<code>F-06</code>)</strong> ของคนที่ 2</td>
+        </tr>
+        <tr>
+          <td><strong>คนที่ 2</strong></td>
+          <td><strong>เลขคู่: <code>F-02</code>, <code>F-04</code>, <code>F-06</code></strong><br/>(<code>Issue #2 / PR #2</code>, <code>Issue #4 / PR #4</code>, <code>Issue #6 / PR #6</code>)</td>
+          <td>
+            • <strong><code>F-02</code> (PR #2):</strong> สร้าง/แสดงโฟลเดอร์บันทึกเงิน (สี/ไอคอน) + เก็บเข้ากรุแบบ Double-Check (<code>TEST-03, 04</code>)<br/>
+            • <strong><code>F-04</code> (PR #4):</strong> ระบบ <strong>Double-Check</strong> ย้ายรายการข้ามโฟลเดอร์ (<code>Move</code>) และยกเลิกรายการ (<code>Cancel</code>) (<code>TEST-08, 09</code>)<br/>
+            • <strong><code>F-06</code> (PR #6):</strong> คำนวณงบรายวัน <code>Daily Safe-to-Spend</code>, ค้นหา/กรอง และหน้า Admin จัดการหมวดหมู่/สูตรจัดงบ (<code>TEST-11, 12</code>)
+          </td>
+          <td>ตรวจและกด Approve ให้ <strong><code>PR #1</code> (<code>F-01</code>), <code>PR #3</code> (<code>F-03</code>), <code>PR #5</code> (<code>F-05</code>), และ <code>Release PR #7</code></strong> ของคนที่ 1</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2. ตารางลำดับการสลับทำ Issue &amp; PR บน GitHub ใน Sprint 1 (Alternating Issue &amp; PR Timeline)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 95px;">ลำดับก้าว</th>
+          <th style="width: 125px;">Issue &amp; PR</th>
+          <th>Branch &amp; ลำดับ Commit (TDD Red &rarr; Green)</th>
+          <th style="width: 145px;">คนทำ (Author)</th>
+          <th style="width: 145px;">คนตรวจ (Reviewer)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Step 0</strong></td>
+          <td><strong>Baseline Setup</strong></td>
+          <td>ดันเอกสาร <code>docs/</code> + โครงสร้างโปรเจกต์ + <code>prisma/schema.prisma</code> + <code>seed.ts</code> ขึ้น <code>main</code> และแตก Branch <code>staging</code></td>
+          <td><strong>คนที่ 1 (หัวหน้า GitHub)</strong></td>
+          <td>ตั้งต้นร่วมกัน</td>
+        </tr>
+        <tr>
+          <td><strong>Step 1</strong></td>
+          <td><strong>Issue #1 &rarr; PR #1</strong><br/>(<code>F-01</code> Auth)</td>
+          <td>Branch <code>feat/f01-auth-session-guard</code>:<br/>1) <code>test(F-01): add failing auth &amp; 401 tests (TEST-01, 02)</code><br/>2) <code>feat(F-01): implement login, logout &amp; RBAC guard</code> &rarr; Merge เข้า <code>staging</code></td>
+          <td><strong>คนที่ 1</strong></td>
+          <td><strong>คนที่ 2</strong> กด Approve</td>
+        </tr>
+        <tr>
+          <td><strong>Step 2</strong></td>
+          <td><strong>Issue #2 &rarr; PR #2</strong><br/>(<code>F-02</code> Folders)</td>
+          <td>Branch <code>feat/f02-custom-folders-archive</code>:<br/>1) <code>test(F-02): add failing folder &amp; privacy 403 tests (TEST-03, 04)</code><br/>2) <code>feat(F-02): implement custom folders &amp; double-check archive</code> &rarr; Merge เข้า <code>staging</code></td>
+          <td><strong>คนที่ 2</strong></td>
+          <td><strong>คนที่ 1</strong> กด Approve</td>
+        </tr>
+        <tr>
+          <td><strong>Step 3</strong></td>
+          <td><strong>Issue #3 &rarr; PR #3</strong><br/>(<code>F-03</code> Logging)</td>
+          <td>Branch <code>feat/f03-atomic-income-expense</code>:<br/>1) <code>test(F-03): add failing overdraft 422 &amp; category tests (TEST-05..07)</code><br/>2) <code>feat(F-03): implement atomic income/expense logging</code> &rarr; Merge เข้า <code>staging</code></td>
+          <td><strong>คนที่ 1</strong></td>
+          <td><strong>คนที่ 2</strong> กด Approve</td>
+        </tr>
+        <tr>
+          <td><strong>Step 4</strong></td>
+          <td><strong>Issue #4 &rarr; PR #4</strong><br/>(<code>F-04</code> Move/Cancel)</td>
+          <td>Branch <code>feat/f04-doublecheck-move-cancel</code>:<br/>1) <code>test(F-04): add failing double-check move &amp; cancel tests (TEST-08, 09)</code><br/>2) <code>feat(F-04): implement double-check move &amp; cancel</code> &rarr; Merge เข้า <code>staging</code></td>
+          <td><strong>คนที่ 2</strong></td>
+          <td><strong>คนที่ 1</strong> กด Approve</td>
+        </tr>
+        <tr>
+          <td><strong>Step 5</strong></td>
+          <td><strong>Issue #5 &rarr; PR #5</strong><br/>(<code>F-05</code> Trash Restore)</td>
+          <td>Branch <code>feat/f05-trash-history-restore</code>:<br/>1) <code>test(F-05): add failing trash restore balance test (TEST-10)</code><br/>2) <code>feat(F-05): implement trash history &amp; double-check restore</code> &rarr; Merge เข้า <code>staging</code></td>
+          <td><strong>คนที่ 1</strong></td>
+          <td><strong>คนที่ 2</strong> กด Approve</td>
+        </tr>
+        <tr>
+          <td><strong>Step 6</strong></td>
+          <td><strong>Issue #6 &rarr; PR #6</strong><br/>(<code>F-06</code> Safe-to-Spend &amp; Admin)</td>
+          <td>Branch <code>feat/f06-safe-to-spend-admin</code>:<br/>1) <code>test(F-06): add failing bidirectional RBAC tests (TEST-11, 12)</code><br/>2) <code>feat(F-06): implement daily safe-to-spend &amp; admin catalog</code> &rarr; Merge เข้า <code>staging</code></td>
+          <td><strong>คนที่ 2</strong></td>
+          <td><strong>คนที่ 1</strong> กด Approve</td>
+        </tr>
+        <tr>
+          <td><strong>Step 7</strong></td>
+          <td><strong>Release PR #7</strong><br/>(<code>staging &rarr; main</code>)</td>
+          <td>รัน <code>TEST-01..TEST-12</code> ผ่านครบ 100%, เปิด PR จาก <code>staging</code> เข้า <code>main</code> และติด Tag <code>v1.0.0-sprint1</code></td>
+          <td><strong>คนที่ 1 (หัวหน้า GitHub)</strong></td>
+          <td><strong>คนที่ 2</strong> กด Approve</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+</body>
+</html>
