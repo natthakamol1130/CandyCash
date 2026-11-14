@@ -14,6 +14,9 @@ import {
   Smartphone,
   Utensils,
   Wallet as WalletIcon,
+  ArrowDownLeft,
+  ArrowUpRight,
+  ReceiptText,
 } from 'lucide-react';
 
 interface UserSession {
@@ -31,6 +34,24 @@ interface WalletItem {
   icon: string;
   balance: number;
   isArchived: boolean;
+}
+
+interface CategoryItem {
+  id: string;
+  name: string;
+  type: 'INCOME' | 'EXPENSE';
+  icon: string;
+}
+
+interface TransactionItem {
+  id: string;
+  walletId: string;
+  type: 'INCOME' | 'EXPENSE';
+  amount: number;
+  note: string | null;
+  transactionDate: string;
+  wallet?: { name: string; color: string };
+  category?: { name: string } | null;
 }
 
 const COLOR_PRESETS = ['#ec4899', '#6366f1', '#10b981', '#f59e0b', '#0ea5e9', '#8b5cf6'];
@@ -65,53 +86,95 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserSession | null>(null);
   const [wallets, setWallets] = useState<WalletItem[]>([]);
+  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string>('');
 
-  // Create Folder Modal state
-  const [showCreate, setShowCreate] = useState(false);
+  // Modals
+  const [showCreateWallet, setShowCreateWallet] = useState(false);
+  const [showCreateTx, setShowCreateTx] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState<WalletItem | null>(null);
+
+  // Form states - Create Wallet
   const [name, setName] = useState('');
-  const [walletType, setWalletType] = useState<'CASH' | 'BANK' | 'EWALLET' | 'POCKET'>('POCKET');
+  const [walletType, setWalletType] = useState<'CASH' | 'BANK' | 'EWALLET' | 'POCKET'>('CASH');
   const [color, setColor] = useState('#ec4899');
   const [icon, setIcon] = useState('wallet');
   const [initialBalance, setInitialBalance] = useState('0');
+
+  // Form states - Create Transaction
+  const [txType, setTxType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
+  const [txWalletId, setTxWalletId] = useState('');
+  const [txCategoryId, setTxCategoryId] = useState('');
+  const [txAmount, setTxAmount] = useState('');
+  const [txNote, setTxNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Double-Check Archive Modal state
-  const [archiveTarget, setArchiveTarget] = useState<WalletItem | null>(null);
+  const fetchSession = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) {
+        router.push('/login');
+        return;
+      }
+      const data = await res.json();
+      setUser(data.user);
+    } catch {
+      router.push('/login');
+    }
+  }, [router]);
 
-  const loadWallets = useCallback(async () => {
-    const res = await fetch('/api/wallets');
-    const json = await res.json();
-    if (res.ok && json.success) {
-      setWallets(json.data.wallets);
-      setTotalBalance(json.data.totalBalance);
+  const fetchWallets = useCallback(async () => {
+    try {
+      const res = await fetch('/api/wallets');
+      if (res.status === 403) return;
+      if (!res.ok) throw new Error('Failed to load wallets');
+      const data = await res.json();
+      if (data.success) {
+        setWallets(data.data.wallets);
+        setTotalBalance(data.data.totalBalance);
+        if (data.data.wallets.length > 0 && !txWalletId) {
+          setTxWalletId(data.data.wallets[0].id);
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error fetching wallets');
+    }
+  }, [txWalletId]);
+
+  const fetchTransactions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/transactions');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success) {
+        setTransactions(data.data.transactions);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/categories');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success) {
+        setCategories(data.data);
+      }
+    } catch {
+      // ignore
     }
   }, []);
 
   useEffect(() => {
-    async function init() {
-      try {
-        const meRes = await fetch('/api/auth/me');
-        if (!meRes.ok) {
-          router.push('/login');
-          return;
-        }
-        const meJson = await meRes.json();
-        setUser(meJson.user);
-
-        if (meJson.user.role === 'USER') {
-          await loadWallets();
-        }
-      } catch {
-        setError('ไม่สามารถโหลดข้อมูลระบบได้');
-      } finally {
-        setLoading(false);
-      }
-    }
-    init();
-  }, [router, loadWallets]);
+    Promise.all([fetchSession(), fetchWallets(), fetchTransactions(), fetchCategories()]).finally(() =>
+      setLoading(false)
+    );
+  }, [fetchSession, fetchWallets, fetchTransactions, fetchCategories]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -120,8 +183,9 @@ export default function DashboardPage() {
 
   const handleCreateWallet = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setSubmitting(true);
+    setError('');
+
     try {
       const res = await fetch('/api/wallets', {
         method: 'POST',
@@ -131,20 +195,55 @@ export default function DashboardPage() {
           walletType,
           color,
           icon,
-          initialBalance: Number(initialBalance),
+          initialBalance: parseFloat(initialBalance) || 0,
         }),
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || 'สร้างโฟลเดอร์ไม่สำเร็จ');
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to create wallet');
       }
 
+      setShowCreateWallet(false);
       setName('');
       setInitialBalance('0');
-      setShowCreate(false);
-      await loadWallets();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
+      await fetchWallets();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletId: txWalletId,
+          categoryId: txCategoryId || undefined,
+          type: txType,
+          amount: parseFloat(txAmount),
+          note: txNote,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to record transaction');
+      }
+
+      setShowCreateTx(false);
+      setTxAmount('');
+      setTxNote('');
+      await Promise.all([fetchWallets(), fetchTransactions()]);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -152,52 +251,67 @@ export default function DashboardPage() {
 
   const handleConfirmArchive = async () => {
     if (!archiveTarget) return;
-    setError('');
     setSubmitting(true);
+    setError('');
+
     try {
       const res = await fetch(`/api/wallets/${archiveTarget.id}/archive`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirmed: true }),
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || 'เก็บโฟลเดอร์เข้ากรุไม่สำเร็จ');
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to archive wallet');
       }
+
       setArchiveTarget(null);
-      await loadWallets();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
+      await fetchWallets();
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
+  const selectedWalletForTx = wallets.find((w) => w.id === txWalletId);
+  const isOverdraft =
+    txType === 'EXPENSE' &&
+    selectedWalletForTx &&
+    parseFloat(txAmount || '0') > selectedWalletForTx.balance;
+
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-500">
-        กำลังโหลดข้อมูล CandyCash...
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-500 text-sm">
+        กำลังโหลดข้อมูล...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-pink-100 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">CandyCash</h1>
-            <p className="text-xs text-slate-500">
-              {user?.fullName} ({user?.role})
-            </p>
+    <div className="min-h-screen bg-slate-50 text-slate-800 pb-12">
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-10 shadow-sm">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl font-bold tracking-tight text-slate-900">CandyCash</span>
+            {user && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">
+                {user.role}
+              </span>
+            )}
           </div>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 transition"
-          >
-            <LogOut className="w-4 h-4" />
-            ออกจากระบบ
-          </button>
+
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-slate-600 hidden sm:inline">{user?.fullName}</span>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-rose-600 transition font-medium"
+            >
+              <LogOut className="w-4 h-4" />
+              ออกจากระบบ
+            </button>
+          </div>
         </div>
       </header>
 
@@ -211,15 +325,14 @@ export default function DashboardPage() {
         {user?.role === 'ADMIN' ? (
           <div className="rounded-2xl bg-white p-8 border border-indigo-100 shadow-sm text-center space-y-3">
             <ShieldAlert className="w-10 h-10 text-indigo-500 mx-auto" />
-            <h2 className="text-lg font-bold text-slate-800">
-              Admin Privacy Guard Active (BR-03)
-            </h2>
+            <h2 className="text-lg font-bold text-slate-800">Admin Privacy Guard Active (BR-03)</h2>
             <p className="text-sm text-slate-600 max-w-md mx-auto">
               บัญชีผู้ดูแลระบบ (ADMIN) ถูกจำกัดสิทธิ์ไม่ให้เข้าถึงโฟลเดอร์และรายการเงินส่วนตัวของ USER (100% Privacy)
             </p>
           </div>
         ) : (
           <>
+            {/* Top Summary Banner */}
             <section className="rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 p-6 text-white shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-wider text-pink-100 font-semibold">
@@ -229,15 +342,26 @@ export default function DashboardPage() {
                   ฿{totalBalance.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-pink-600 shadow hover:bg-pink-50 transition"
-              >
-                <Plus className="w-4 h-4" />
-                สร้างโฟลเดอร์ใหม่
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowCreateTx(true)}
+                  disabled={wallets.length === 0}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur-sm px-4 py-2.5 text-sm font-semibold text-white border border-white/30 hover:bg-white/30 transition disabled:opacity-50"
+                >
+                  <Plus className="w-4 h-4" />
+                  จดรายรับ-รายจ่าย
+                </button>
+                <button
+                  onClick={() => setShowCreateWallet(true)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-pink-600 shadow hover:bg-pink-50 transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  สร้างโฟลเดอร์ใหม่
+                </button>
+              </div>
             </section>
 
+            {/* Wallets Grid */}
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -281,11 +405,66 @@ export default function DashboardPage() {
                         </button>
                       </div>
 
-                      <div>
-                        <p className="text-xs text-slate-500">ยอดคงเหลือ</p>
-                        <p className="text-2xl font-bold text-slate-900">
+                      <div className="border-t border-slate-100 pt-3">
+                        <p className="text-xs text-slate-500">ยอดเงินในโฟลเดอร์</p>
+                        <p className="text-xl font-bold text-slate-900 mt-0.5">
                           ฿{Number(wallet.balance).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                         </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Transactions Section */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <ReceiptText className="w-5 h-5 text-indigo-500" />
+                  ประวัติรายการล่าสุด ({transactions.length})
+                </h2>
+              </div>
+
+              {transactions.length === 0 ? (
+                <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-slate-500 text-sm shadow-sm">
+                  ยังไม่มีประวัติรายการ กดปุ่ม &ldquo;จดรายรับ-รายจ่าย&rdquo; ด้านบนเพื่อบันทึกรายการแรก
+                </div>
+              ) : (
+                <div className="rounded-2xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+                  {transactions.slice(0, 10).map((tx) => (
+                    <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                            tx.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                          }`}
+                        >
+                          {tx.type === 'INCOME' ? (
+                            <ArrowDownLeft className="w-5 h-5" />
+                          ) : (
+                            <ArrowUpRight className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">
+                            {tx.note || tx.category?.name || (tx.type === 'INCOME' ? 'รายรับ' : 'รายจ่าย')}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {tx.wallet?.name} • {new Date(tx.transactionDate).toLocaleDateString('th-TH')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`text-sm font-bold ${
+                            tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'
+                          }`}
+                        >
+                          {tx.type === 'INCOME' ? '+' : '-'}฿
+                          {Number(tx.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                        </p>
+                        <span className="text-[10px] text-slate-400 font-medium">สำเร็จ</span>
                       </div>
                     </div>
                   ))}
@@ -296,54 +475,167 @@ export default function DashboardPage() {
         )}
       </main>
 
-      {/* Create Folder Modal */}
-      {showCreate && (
+      {/* Create Transaction Modal (F-03) */}
+      {showCreateTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-slate-800">บันทึกรายการ (Income / Expense)</h3>
+
+            <form onSubmit={handleCreateTransaction} className="space-y-4">
+              {/* Type Switcher */}
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setTxType('EXPENSE')}
+                  className={`py-2 rounded-lg transition ${
+                    txType === 'EXPENSE' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  รายจ่าย (EXPENSE)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTxType('INCOME')}
+                  className={`py-2 rounded-lg transition ${
+                    txType === 'INCOME' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  รายรับ (INCOME)
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">เลือกโฟลเดอร์</label>
+                <select
+                  value={txWalletId}
+                  onChange={(e) => setTxWalletId(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                >
+                  {wallets.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name} (คงเหลือ: ฿{w.balance.toFixed(2)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">หมวดหมู่</label>
+                <select
+                  value={txCategoryId}
+                  onChange={(e) => setTxCategoryId(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                >
+                  <option value="">ไม่ระบุหมวดหมู่</option>
+                  {categories
+                    .filter((c) => c.type === txType)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">จำนวนเงิน (บาท)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  required
+                  value={txAmount}
+                  onChange={(e) => setTxAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Overdraft Warning Banner (BR-01) */}
+              {isOverdraft && (
+                <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">
+                  <strong>เตือนยอดเงินไม่พอ (BR-01):</strong> ยอดเงินในโฟลเดอร์นี้มีเพียง ฿
+                  {selectedWalletForTx?.balance.toFixed(2)} การจ่าย ฿{parseFloat(txAmount).toFixed(2)}{' '}
+                  จะถูกระบบบล็อกทันที
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">บันทึกข้อความ (Note)</label>
+                <input
+                  type="text"
+                  value={txNote}
+                  onChange={(e) => setTxNote(e.target.value)}
+                  placeholder="เช่น ค่าข้าวกลางวัน, เงินเดือน"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateTx(false)}
+                  className="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || !!isOverdraft}
+                  className="rounded-lg bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 disabled:opacity-50"
+                >
+                  {submitting ? 'กำลังบันทึก...' : 'บันทึกรายการ'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Wallet Modal (F-02) */}
+      {showCreateWallet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
             <h3 className="text-lg font-bold text-slate-800">สร้างโฟลเดอร์เก็บเงินใหม่</h3>
+
             <form onSubmit={handleCreateWallet} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">ชื่อโฟลเดอร์</label>
                 <input
                   type="text"
                   required
-                  placeholder="เช่น ค่ากินรายวัน, เงินเก็บเที่ยว"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="เช่น ค่ากินรายสัปดาห์, ออมซื้อคอนโด"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">ประเภท</label>
-                  <select
-                    value={walletType}
-                    onChange={(e) =>
-                      setWalletType(e.target.value as 'CASH' | 'BANK' | 'EWALLET' | 'POCKET')
-                    }
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
-                  >
-                    <option value="CASH">CASH (เงินสด)</option>
-                    <option value="BANK">BANK (ธนาคาร)</option>
-                    <option value="EWALLET">EWALLET</option>
-                    <option value="POCKET">POCKET (โฟลเดอร์ย่อย)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    ยอดเงินตั้งต้น (บาท)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    value={initialBalance}
-                    onChange={(e) => setInitialBalance(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">ประเภทโฟลเดอร์</label>
+                <select
+                  value={walletType}
+                  onChange={(e) => setWalletType(e.target.value as any)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                >
+                  <option value="CASH">CASH (เงินสด)</option>
+                  <option value="BANK">BANK (บัญชีธนาคาร)</option>
+                  <option value="EWALLET">EWALLET (กระเป๋าเงินดิจิทัล)</option>
+                  <option value="POCKET">POCKET (พ็อกเก็ต/ซองเก็บเงิน)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">ยอดเงินเริ่มต้น (บาท)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={initialBalance}
+                  onChange={(e) => setInitialBalance(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                />
               </div>
 
               <div>
@@ -386,7 +678,7 @@ export default function DashboardPage() {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreate(false)}
+                  onClick={() => setShowCreateWallet(false)}
                   className="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
                 >
                   ยกเลิก
@@ -408,9 +700,7 @@ export default function DashboardPage() {
       {archiveTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
-            <h3 className="text-lg font-bold text-slate-800">
-              ยืนยันการเก็บโฟลเดอร์เข้ากรุ (Double-Check)
-            </h3>
+            <h3 className="text-lg font-bold text-slate-800">ยืนยันการเก็บโฟลเดอร์เข้ากรุ (Double-Check)</h3>
             <p className="text-sm text-slate-600">
               คุณต้องการเก็บโฟลเดอร์ <strong>{archiveTarget.name}</strong> เข้ากรุ (Archive) ใช่หรือไม่?
               ข้อมูลรายการเดิมจะถูกเก็บรักษาไว้เพื่อความถูกต้องทางบัญชี
