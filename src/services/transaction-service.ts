@@ -393,3 +393,114 @@ export async function cancelTransaction(
     });
   });
 }
+
+
+export async function listTrashTransactions(userId: string) {
+  const trashItems = await prisma.transaction.findMany({
+    where: {
+      createdById: userId,
+      isCancelled: true,
+    },
+    orderBy: { cancelledAt: 'desc' },
+    include: {
+      category: true,
+      wallet: true,
+    },
+  });
+
+  const totalCancelledIncome = trashItems
+    .filter((t) => t.type === 'INCOME')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalCancelledExpense = trashItems
+    .filter((t) => t.type === 'EXPENSE')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  return {
+    trashItems,
+    totalCount: trashItems.length,
+    totalCancelledIncome,
+    totalCancelledExpense,
+  };
+}
+
+export async function restoreTransaction(userId: string, transactionId: string, confirmed?: boolean) {
+  if (!confirmed) {
+    throw new TransactionServiceError(
+      'Confirmation required to restore transaction',
+      'CONFIRMATION_REQUIRED',
+      400
+    );
+  }
+
+  return await prisma.$transaction(async (tx) => {
+    const txRecord = await tx.transaction.findUnique({
+      where: { id: transactionId },
+      include: { wallet: true },
+    });
+
+    if (!txRecord) {
+      throw new TransactionServiceError('Transaction not found', 'TRANSACTION_NOT_FOUND', 404);
+    }
+
+    if (txRecord.createdById !== userId || txRecord.wallet.ownerId !== userId) {
+      throw new TransactionServiceError('Forbidden: Access denied to transaction', 'FORBIDDEN', 403);
+    }
+
+    if (!txRecord.isCancelled) {
+      throw new TransactionServiceError(
+        'Transaction is not in cancelled state',
+        'TRANSACTION_NOT_CANCELLED',
+        400
+      );
+    }
+
+    if (txRecord.wallet.isArchived) {
+      throw new TransactionServiceError(
+        'Cannot restore transaction into an archived wallet',
+        'WALLET_ARCHIVED',
+        400
+      );
+    }
+
+    if (txRecord.type === 'EXPENSE') {
+      // Re-deduct balance with overdraft protection (BR-05)
+      const deductWallet = await tx.wallet.updateMany({
+        where: { id: txRecord.walletId, balance: { gte: txRecord.amount } },
+        data: { balance: { decrement: txRecord.amount } },
+      });
+
+      if (deductWallet.count === 0) {
+        throw new TransactionServiceError(
+          'Insufficient balance in wallet to restore this expense',
+          'INSUFFICIENT_BALANCE_TO_RESTORE',
+          422
+        );
+      }
+    } else if (txRecord.type === 'INCOME') {
+      // Re-credit balance
+      await tx.wallet.update({
+        where: { id: txRecord.walletId },
+        data: { balance: { increment: txRecord.amount } },
+      });
+    }
+
+    const updated = await tx.transaction.update({
+      where: { id: transactionId },
+      data: {
+        isCancelled: false,
+        cancelledAt: null,
+      },
+      include: { category: true, wallet: true },
+    });
+
+    const updatedWallet = await tx.wallet.findUnique({
+      where: { id: txRecord.walletId },
+    });
+
+    return {
+      ...updated,
+      walletBalanceAfter: updatedWallet?.balance ?? 0,
+    };
+  });
+}
