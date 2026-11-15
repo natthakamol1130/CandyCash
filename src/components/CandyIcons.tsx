@@ -255,24 +255,28 @@ export function ThemeToggle({
   );
 }
 
-export function GlitterGlint({
+export function CrystalDiamondGlint({
   className = '',
-  size = 12,
+  size = 20,
   color = '#ffffff',
-  duration = 3,
+  glowColor = 'rgba(244, 114, 182, 0.7)',
+  duration = 3.6,
   delay = 0,
+  alt = false,
 }: {
   className?: string;
   size?: number;
   color?: string;
+  glowColor?: string;
   duration?: number;
   delay?: number;
+  alt?: boolean;
 }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
+      viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`shrink-0 pointer-events-none ${className}`}
@@ -280,16 +284,26 @@ export function GlitterGlint({
         display: 'inline-block',
         maxWidth: `${size}px`,
         maxHeight: `${size}px`,
-        animation: `glitterTwinklePulse ${duration}s ease-in-out infinite`,
+        animation: `${alt ? 'crystalStarburstAlt' : 'crystalStarburst'} ${duration}s ease-in-out infinite`,
         animationDelay: `${delay}s`,
         transformOrigin: '50% 50%',
       }}
     >
+      {/* Soft halo glow */}
+      <circle cx="16" cy="16" r="7" fill={glowColor} />
+      {/* 4 Primary Crystal Spikes */}
       <path
-        d="M12 0L13.5 9L21 12L13.5 15L12 24L10.5 15L3 12L10.5 9L12 0Z"
+        d="M16 1L17.8 13.8L31 16L17.8 18.2L16 31L14.2 18.2L1 16L14.2 13.8L16 1Z"
         fill={color}
       />
-      <circle cx="12" cy="12" r="2.5" fill="#ffffff" opacity="0.9" />
+      {/* 4 Secondary Diagonal Facets */}
+      <path
+        d="M16 6.5L18.2 13.8L25.5 16L18.2 18.2L16 25.5L13.8 18.2L6.5 16L13.8 13.8L16 6.5Z"
+        fill="#ffffff"
+        opacity="0.9"
+      />
+      {/* Prismatic Diamond Core */}
+      <circle cx="16" cy="16" r="2.8" fill="#ffffff" />
     </svg>
   );
 }
@@ -297,40 +311,73 @@ export function GlitterGlint({
 export function GlitterOverlay() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* Repeating fine glitter shimmer texture */}
-      <div className="absolute inset-0 opacity-85 dark:opacity-0 glitter-bg-light transition-opacity duration-500" />
-      <div className="absolute inset-0 opacity-0 dark:opacity-90 glitter-bg-dark transition-opacity duration-500" />
+      {/* Layer 1: Dreamy Liquid Pearl Aurora Mesh Clouds */}
+      <div className="absolute -top-36 -left-36 w-[34rem] h-[34rem] rounded-full bg-gradient-to-tr from-pink-300/30 via-rose-200/25 to-amber-200/30 dark:from-pink-950/25 dark:via-purple-950/30 dark:to-teal-950/20 blur-3xl aurora-mesh-slow" />
+      <div className="absolute -bottom-36 -right-36 w-[36rem] h-[36rem] rounded-full bg-gradient-to-bl from-purple-200/25 via-sky-200/20 to-teal-100/30 dark:from-indigo-950/35 dark:via-cyan-950/25 dark:to-slate-950 blur-3xl aurora-mesh-alt" />
+      <div className="absolute top-1/3 -right-24 w-96 h-96 rounded-full bg-gradient-to-l from-rose-200/25 via-amber-100/20 to-pink-100/20 dark:from-fuchsia-950/20 dark:via-purple-950/20 dark:to-transparent blur-3xl aurora-mesh-slow" />
+      <div className="absolute bottom-1/4 -left-24 w-96 h-96 rounded-full bg-gradient-to-r from-teal-100/25 via-emerald-100/20 to-sky-100/20 dark:from-teal-950/25 dark:via-slate-900/30 dark:to-transparent blur-3xl aurora-mesh-alt" />
 
-      {/* Floating micro diamond glints that twinkle like real glitter */}
-      <div className="absolute top-[8%] left-[12%]">
-        <GlitterGlint size={14} color="#fde047" duration={2.4} delay={0.2} />
+      {/* Layer 2: Floating Bokeh Orbs */}
+      <div className="absolute top-[14%] left-[22%] w-10 h-10 rounded-full bg-pink-200/40 dark:bg-pink-500/20 blur-md bokeh-pulse" />
+      <div className="absolute top-[48%] right-[16%] w-14 h-14 rounded-full bg-amber-200/35 dark:bg-amber-400/15 blur-lg bokeh-pulse" style={{ animationDelay: '1.5s' }} />
+      <div className="absolute bottom-[22%] left-[12%] w-12 h-12 rounded-full bg-teal-200/35 dark:bg-teal-400/20 blur-md bokeh-pulse" style={{ animationDelay: '3s' }} />
+      <div className="absolute top-[72%] right-[28%] w-8 h-8 rounded-full bg-purple-200/40 dark:bg-purple-500/20 blur-md bokeh-pulse" style={{ animationDelay: '2.2s' }} />
+
+      {/* Layer 3: Fine Glitter Stardust Sheen */}
+      <div className="absolute inset-0 opacity-70 dark:opacity-0 glitter-bg-light transition-opacity duration-700" />
+      <div className="absolute inset-0 opacity-0 dark:opacity-85 glitter-bg-dark transition-opacity duration-700" />
+
+      {/* Layer 4: Radiant Faceted Crystal Starbursts with Prismatic Flares */}
+      {/* Top Left Area */}
+      <div className="absolute top-[7%] left-[9%]">
+        <CrystalDiamondGlint size={24} color="#ffffff" glowColor="rgba(253, 224, 71, 0.75)" duration={3.4} delay={0.2} />
       </div>
-      <div className="absolute top-[18%] right-[18%]">
-        <GlitterGlint size={16} color="#ffffff" duration={3.1} delay={0.8} />
+      <div className="absolute top-[15%] left-[26%] hidden sm:block">
+        <CrystalDiamondGlint size={16} color="#ffffff" glowColor="rgba(244, 114, 182, 0.7)" duration={2.8} delay={1.2} alt />
       </div>
-      <div className="absolute top-[28%] left-[25%] hidden sm:block">
-        <GlitterGlint size={11} color="#f472b6" duration={2.8} delay={1.4} />
+
+      {/* Top Right Area */}
+      <div className="absolute top-[11%] right-[14%]">
+        <CrystalDiamondGlint size={26} color="#ffffff" glowColor="rgba(110, 231, 183, 0.7)" duration={3.8} delay={0.7} />
       </div>
-      <div className="absolute top-[42%] right-[8%]">
-        <GlitterGlint size={15} color="#34d399" duration={3.5} delay={0.5} />
+      <div className="absolute top-[22%] right-[24%] hidden sm:block">
+        <CrystalDiamondGlint size={18} color="#ffffff" glowColor="rgba(251, 191, 36, 0.75)" duration={3.1} delay={1.9} alt />
       </div>
-      <div className="absolute top-[55%] left-[8%] hidden sm:block">
-        <GlitterGlint size={13} color="#ffffff" duration={2.6} delay={1.8} />
+
+      {/* Middle Flanks */}
+      <div className="absolute top-[38%] left-[5%]">
+        <CrystalDiamondGlint size={22} color="#ffffff" glowColor="rgba(244, 114, 182, 0.8)" duration={3.2} delay={1.5} />
       </div>
-      <div className="absolute top-[68%] right-[22%]">
-        <GlitterGlint size={17} color="#fbbf24" duration={3.2} delay={1.1} />
+      <div className="absolute top-[52%] left-[14%] hidden md:block">
+        <CrystalDiamondGlint size={15} color="#ffffff" glowColor="rgba(167, 139, 250, 0.7)" duration={2.6} delay={0.4} alt />
       </div>
-      <div className="absolute top-[82%] left-[16%]">
-        <GlitterGlint size={12} color="#a78bfa" duration={2.9} delay={0.7} />
+      <div className="absolute top-[44%] right-[6%]">
+        <CrystalDiamondGlint size={24} color="#ffffff" glowColor="rgba(56, 189, 248, 0.75)" duration={3.6} delay={0.9} alt />
       </div>
-      <div className="absolute top-[90%] right-[12%] hidden sm:block">
-        <GlitterGlint size={15} color="#ffffff" duration={3.6} delay={1.5} />
+      <div className="absolute top-[58%] right-[15%] hidden md:block">
+        <CrystalDiamondGlint size={16} color="#ffffff" glowColor="rgba(253, 224, 71, 0.7)" duration={3.0} delay={2.1} />
       </div>
-      <div className="absolute top-[35%] left-[45%] hidden md:block">
-        <GlitterGlint size={10} color="#fef08a" duration={2.2} delay={0.3} />
+
+      {/* Bottom Area */}
+      <div className="absolute bottom-[16%] left-[8%]">
+        <CrystalDiamondGlint size={28} color="#ffffff" glowColor="rgba(244, 114, 182, 0.85)" duration={4.0} delay={0.5} />
       </div>
-      <div className="absolute top-[75%] left-[60%] hidden md:block">
-        <GlitterGlint size={12} color="#38bdf8" duration={3.0} delay={1.9} />
+      <div className="absolute bottom-[28%] left-[22%] hidden sm:block">
+        <CrystalDiamondGlint size={16} color="#ffffff" glowColor="rgba(52, 211, 153, 0.7)" duration={2.7} delay={1.7} alt />
+      </div>
+      <div className="absolute bottom-[12%] right-[10%]">
+        <CrystalDiamondGlint size={26} color="#ffffff" glowColor="rgba(251, 191, 36, 0.8)" duration={3.5} delay={1.1} />
+      </div>
+      <div className="absolute bottom-[25%] right-[26%] hidden sm:block">
+        <CrystalDiamondGlint size={18} color="#ffffff" glowColor="rgba(192, 132, 252, 0.75)" duration={3.3} delay={0.3} alt />
+      </div>
+
+      {/* Ambient Center Highlights */}
+      <div className="absolute top-[30%] left-[50%] -translate-x-1/2 hidden lg:block">
+        <CrystalDiamondGlint size={15} color="#ffffff" glowColor="rgba(253, 224, 71, 0.65)" duration={2.5} delay={1.8} />
+      </div>
+      <div className="absolute bottom-[35%] left-[48%] -translate-x-1/2 hidden lg:block">
+        <CrystalDiamondGlint size={14} color="#ffffff" glowColor="rgba(244, 114, 182, 0.65)" duration={3.1} delay={0.6} alt />
       </div>
     </div>
   );
