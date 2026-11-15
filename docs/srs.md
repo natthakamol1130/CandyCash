@@ -24,7 +24,7 @@
 | **FR-06** | **Daily Safe-to-Spend, Search/Filter & Admin Catalog/Templates:** `USER` ตั้งงบรวมประจำเดือน (หรือเลือกใช้สูตรจัดงบจาก `ADMIN`) เพื่อดูตัวเลข *"งบที่ใช้ได้ในวันนี้ (`Daily Safe-to-Spend`)"*, กราฟสัดส่วนรายจ่าย และตัวกรองค้นหา; ส่วน `ADMIN` จัดการหมวดหมู่กลางและสูตรจัดงบแนะนำได้ | Sprint 1 |
 | **FR-07** | **Category Budget Envelopes & Over-Budget Guardrail:** `USER` ซอยงบรายเดือนแยกตามหมวดหมู่ย่อย พร้อมแถบสีสถานะ (เขียว/เหลือง/แดง) และการเตือนแบบ Double-Check เมื่อรายจ่ายทะลุงบ | Sprint 2 |
 | **FR-08** | **Atomic Inter-Wallet Transfer:** `USER` โอนเงินข้ามระหว่างโฟลเดอร์ 2 ใบของตนเองโดยหักต้นทางและบวกปลายทางพร้อมกันแบบ Atomic | Sprint 2 |
-| **FR-09** | **Savings Goal Jars & Target Predictor:** `USER` สร้างกระปุกออมเงินตามเป้าหมาย จัดสรรเงินเข้ากระปุก (`SAVINGS_ALLOCATION`) และดูจำนวนวันที่คาดว่าจะออมครบเป้า | Sprint 2 |
+| **FR-09** | **Savings Goal Jars, PIN-Locked Spending Folders & Batch Archive:** `USER` สร้างกระปุกออมเงินตามเป้าหมาย, จัดสรรเงินเข้ากระปุก (`SAVINGS_ALLOCATION`), ดูจำนวนวันที่คาดว่าจะออมครบเป้า, เปิดระบบล็อกโฟลเดอร์ด้วยรหัส PIN เพื่อป้องกันการเผลอนำเงินเก็บไปใช้จ่าย และสามารถเลือกหลายโฟลเดอร์พร้อมกันเพื่อจัดเก็บเข้ากรุ (`Batch Archive`) พร้อมหน้าต่าง Double-Check ทวนรายการ | Sprint 2 |
 | **FR-10** | **Recurring Bills & Monthly Due Reminder:** `USER` ตั้งรายการบิลประจำเดือน (เช่น ค่าหอ, ค่าไฟ, อินเทอร์เน็ต) เพื่อรับการแจ้งเตือนเมื่อใกล้ถึงวันครบกำหนดชำระ | Sprint 3 |
 | **FR-11** | **Financial Analytics Dashboard & CSV Export:** แสดงกราฟสรุป Cashflow รายเดือน/รายวัน เปรียบเทียบเดือนก่อนหน้า และส่งออกรายการเดินบัญชีเป็นไฟล์ CSV | Sprint 3 |
 | **FR-12** | **Fiscal Month-End Lock & Admin Unlock Recovery:** `USER` สั่งล็อกงวดบัญชีสิ้นเดือน (`CLOSED`) เพื่อกันการเผลอแก้ข้อมูลเดือนเก่า และสามารถส่งคำขอให้ `ADMIN` ช่วยปลดล็อกเมื่อเผลอกดล็อกผิดได้ | Sprint 3 |
@@ -40,6 +40,8 @@
 | **BR-06** | **Double-Check Folder Archive Protection:** โฟลเดอร์ที่มีธุรกรรมอยู่ข้างในห้ามลบออกจากฐานข้อมูลโดยตรง แต่ต้องใช้การเก็บเข้ากรุ (`Archive`) แบบ Double-Check หรือย้ายรายการออกก่อน | Sprint 1 |
 | **BR-07** | **Savings Allocation Separation & Distinct Transfer Rule:** การโอนเงินข้ามโฟลเดอร์ (`F-08`) และการหยอดกระปุกออมเงิน (`F-09`) ไม่นับรวมเป็นรายจ่ายสิ้นเปลือง (`EXPENSE`) ในกราฟค่าใช้จ่ายรายเดือน | Sprint 2 |
 | **BR-08** | **Closed Fiscal Period Immutability:** ห้ามเพิ่ม ย้าย ยกเลิก หรือกู้คืนธุรกรรมในเดือนที่ถูกสั่งปิดงวดบัญชี (`CLOSED`) แล้ว (`422 PERIOD_CLOSED`) | Sprint 3 |
+| **BR-09** | **Folder PIN Spending Lock Guard:** โฟลเดอร์ที่เปิดระบบล็อก (`is_locked: true`) จะบล็อกการทำรายการรายจ่าย (`EXPENSE`) และการโอนออก (`TRANSFER_OUT`) จนกว่าจะใส่รหัส PIN ยืนยันถูกต้อง (`403 FOLDER_LOCKED_PIN_REQUIRED`) เพื่อป้องกัน impulsive spending | Sprint 2 |
+| **BR-10** | **Multi-Select Folder Batch Archive & Double-Check Itemized Guard:** เมื่อผู้ใช้เปิดโหมดเลือกหลายโฟลเดอร์พร้อมกันเพื่อจัดเก็บเข้ากรุ (`Batch Archive`) ระบบต้องมีหน้าต่าง Double-Check แจกแจงรายชื่อโฟลเดอร์ที่เลือก (Itemized Summary) และยอดเงินคงเหลือรวมที่เกี่ยวข้อง โดยต้องส่ง `confirmed: true` เพื่อยืนยันการจัดเก็บ และสามารถกู้คืนกลับมาได้เสมอ (`Reversible Archive Guard`) | Sprint 2 |
 
 ## 5. Non-Functional Requirements (`NFR-01 .. NFR-05` — เรียงลำดับตาม Sprint)
 | ID | Category | Measurable Target | Verification Method | Planned Sprint |
