@@ -20,6 +20,9 @@ const config: Config = {
           rose: "#fb7185",
         },
       },
+      fontFamily: {
+        sans: ['var(--font-prompt)', 'Prompt', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       animation: {
         'spin-slow': 'spin 12s linear infinite',
         'spin-reverse-slow': 'spin-reverse 15s linear infinite',

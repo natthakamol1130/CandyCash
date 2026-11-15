@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
+import { Prompt } from 'next/font/google';
 import './globals.css';
+
+const prompt = Prompt({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['thai', 'latin'],
+  display: 'swap',
+  variable: '--font-prompt',
+});
 
 export const metadata: Metadata = {
   title: 'CandyCash — ระบบบันทึกรายรับ-รายจ่ายส่วนตัว',
@@ -12,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th">
-      <body className="min-h-screen bg-slate-50 text-slate-800 antialiased">
+    <html lang="th" className={prompt.variable}>
+      <body className={`${prompt.className} min-h-screen bg-slate-50 text-slate-800 antialiased`}>
         {children}
       </body>
     </html>
