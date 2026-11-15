@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/prisma';
@@ -248,5 +248,12 @@ describe('F-06: Daily Safe-to-Spend, Search/Filter & Admin Catalog/Templates', (
         )
       ).toBe(true);
     });
+  });
+
+  afterAll(async () => {
+    if (user1WalletId) {
+      await prisma.transaction.deleteMany({ where: { walletId: user1WalletId } });
+      await prisma.wallet.deleteMany({ where: { id: user1WalletId } });
+    }
   });
 });

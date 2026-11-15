@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/prisma';
@@ -209,5 +209,12 @@ describe('F-02: Custom Expense Folders / Wallets & Archive Guard', () => {
       expect(json.success).toBe(true);
       expect(json.data.isArchived).toBe(true);
     });
+  });
+
+  afterAll(async () => {
+    if (user1WalletId) {
+      await prisma.transaction.deleteMany({ where: { walletId: user1WalletId } });
+      await prisma.wallet.deleteMany({ where: { id: user1WalletId } });
+    }
   });
 });

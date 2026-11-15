@@ -12,7 +12,7 @@
 | **F-06** | **Daily Safe-to-Spend, Search/Filter & Admin Catalog/Templates** | คำนวณงบที่ใช้ได้ในวันนี้, กราฟสัดส่วนรายจ่าย, ช่องค้นหา/กรองรายการ; และฝั่ง `ADMIN` จัดการหมวดหมู่กลาง & สูตรจัดงบแนะนำ | FR-06, BR-03, NFR-01 | F-01..F-03 | **Sprint 1** |
 | **F-07** | **Category Budget Envelopes & Double-Check Over-Budget Alert** | ตั้งงบรายหมวดหมู่ย่อย แสดงแถบสีสถานะ (เขียว/เหลือง/แดง) และเตือนแบบ Double-Check เมื่อรายจ่ายทะลุงบ | FR-07 | F-03, F-06 | **Sprint 2** |
 | **F-08** | **Atomic Inter-Wallet Transfer** | โอนเงินข้ามระหว่างโฟลเดอร์ 2 ใบของตัวเองแบบ Atomic โดยไม่นับรวมเป็นรายจ่ายสิ้นเปลือง | FR-08, BR-07 | F-02, F-03 | **Sprint 2** |
-| **F-09** | **Savings Goal Jars & PIN-Locked Spending Folders** | สร้างกระปุกออมเงินตามเป้าหมาย, ระบบล็อกโฟลเดอร์ป้องกันการใช้จ่ายด้วย PIN และคำนวณวันที่จะเก็บเงินครบเป้า | FR-09, BR-07, BR-09 | F-02, F-08 | **Sprint 2** |
+| **F-09** | **Savings Goal Jars, PIN-Locked Folders & Batch Folder Archive** | สร้างกระปุกออมเงินตามเป้าหมาย, ระบบล็อกโฟลเดอร์ป้องกันการใช้จ่ายด้วย PIN (BR-09), ระบบเลือกหลายโฟลเดอร์เพื่อจัดเก็บแบบ Double-Check ทวนรายการ (BR-10) และคำนวณวันที่จะเก็บเงินครบเป้า | FR-09, BR-07, BR-09, BR-10 | F-02, F-08 | **Sprint 2** |
 | **F-10** | **Recurring Bills & Monthly Due Reminder** | ตั้งรายการบิลประจำเดือนและค่าสมาชิก พร้อมระบบแจ้งเตือนเมื่อใกล้ถึงวันครบกำหนดชำระ | FR-10 | F-03 | **Sprint 3** |
 | **F-11** | **Financial Analytics Dashboard & CSV Export** | แดชบอร์ดกราฟวิเคราะห์รายเดือน/รายวัน เปรียบเทียบเดือนก่อนหน้า และส่งออกไฟล์ Excel/CSV | FR-11, NFR-04 | F-03, F-07 | **Sprint 3** |
 | **F-12** | **Fiscal Month-End Closing Lock & Admin Unlock** | ล็อกงวดบัญชีสิ้นเดือน (`CLOSED`) กันการเผลอแก้รายการย้อนหลัง พร้อมระบบขอ `ADMIN` ปลดล็อกเมื่อกดผิด | FR-12, BR-08, NFR-05 | F-03..F-06 | **Sprint 3** |

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/prisma';
@@ -273,6 +273,15 @@ describe('F-04: Self-Service Double-Check Move & Cancel Transaction', () => {
 
       const res = await cancelTransactionRoute(req, { params: { id: incomeTxId } });
       expect(res.status).toBe(403);
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.transaction.deleteMany({
+      where: { walletId: { in: [walletAId, walletBId, walletCId, user2WalletId] } },
+    });
+    await prisma.wallet.deleteMany({
+      where: { id: { in: [walletAId, walletBId, walletCId, user2WalletId] } },
     });
   });
 });
