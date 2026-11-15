@@ -191,7 +191,7 @@ export default function LoginPage() {
           {/* Main Candy Jar Illustration Floating */}
           <div className="relative">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-pink-200/40 via-white/80 to-teal-100/40 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 flex items-center justify-center shadow-lg shadow-pink-100/40 dark:shadow-slate-950 border border-pink-200/60 dark:border-slate-700 backdrop-blur-sm">
-              <CandyJarIcon size={58} />
+              <CandyJarIcon size={48} />
             </div>
             {/* Sparkles around Jar */}
             <div className="absolute -top-3 -right-2 animate-pulse">
@@ -233,8 +233,8 @@ export default function LoginPage() {
 
           {/* Brand Header */}
           <div className="text-center mb-6">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-200 via-pink-100 to-teal-100 dark:from-slate-800 dark:via-pink-950/40 dark:to-slate-800 flex items-center justify-center shadow-sm shadow-pink-100 dark:shadow-slate-950 mb-3 ring-4 ring-pink-50 dark:ring-slate-800 border border-pink-200/70 dark:border-slate-700">
-              <CandyIcon className="w-8 h-8" size={32} />
+            <div className="mx-auto w-[72px] h-[72px] rounded-2xl bg-gradient-to-tr from-pink-200 via-pink-100 to-teal-100 dark:from-slate-800 dark:via-pink-950/40 dark:to-slate-800 flex items-center justify-center shadow-md shadow-pink-100 dark:shadow-slate-950 mb-3 ring-4 ring-pink-50 dark:ring-slate-800 border border-pink-200/70 dark:border-slate-700">
+              <CandyIcon size={46} />
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 dark:bg-slate-800 border border-pink-200/60 dark:border-slate-700 text-[11px] font-medium text-pink-600 dark:text-pink-400 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
@@ -345,7 +345,7 @@ export default function LoginPage() {
           {/* Main Lollipop Illustration Floating */}
           <div className="relative">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-teal-100/40 via-white/80 to-pink-200/40 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 flex items-center justify-center shadow-lg shadow-teal-100/40 dark:shadow-slate-950 border border-teal-200/60 dark:border-slate-700 backdrop-blur-sm">
-              <LollipopIcon size={58} />
+              <LollipopIcon size={48} />
             </div>
             {/* Sparkles around Lollipop */}
             <div className="absolute -top-3 -left-2 animate-pulse">

@@ -4,16 +4,22 @@ import React from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { Language } from '@/lib/i18n';
 
-export function CandyIcon({ className = 'w-6 h-6', size = 32 }: { className?: string; size?: number }) {
+export function CandyIcon({ className = '', size }: { className?: string; size?: number }) {
+  const iconSize = size ?? 24;
   return (
     <svg
-      width={size}
-      height={size}
+      width={iconSize}
+      height={iconSize}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={{ display: 'inline-block', maxWidth: `${size}px`, maxHeight: `${size}px` }}
+      className={className || (!size ? 'w-6 h-6' : '')}
+      style={{
+        display: 'inline-block',
+        ...(size ? { width: `${size}px`, height: `${size}px` } : {}),
+        maxWidth: '100%',
+        maxHeight: '100%',
+      }}
     >
       {/* Left twist */}
       <path
