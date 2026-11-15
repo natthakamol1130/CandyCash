@@ -187,7 +187,7 @@ export default function LoginPage() {
       {/* Three Column Container for Desktop, neatly centered */}
       <div className="relative z-10 w-full max-w-5xl mx-auto flex items-center justify-center gap-8 lg:gap-14">
         {/* Left Cute Floating Candy Cluster (No white card container) */}
-        <div className="hidden lg:flex flex-col items-center justify-center w-60 shrink-0 space-y-5 select-none pointer-events-none">
+        <div className="hidden lg:flex flex-col items-center justify-center w-64 shrink-0 space-y-5 select-none pointer-events-none">
           {/* Main Candy Jar Illustration Floating */}
           <div className="relative">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-pink-200/40 via-white/80 to-teal-100/40 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 flex items-center justify-center shadow-lg shadow-pink-100/40 dark:shadow-slate-950 border border-pink-200/60 dark:border-slate-700 backdrop-blur-sm">
@@ -204,11 +204,11 @@ export default function LoginPage() {
 
           {/* Minimal Floating Feature Badges */}
           <div className="flex flex-col items-center gap-2.5 w-full">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-pink-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-pink-100/50 dark:shadow-slate-950/40">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-pink-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-pink-100/50 dark:shadow-slate-950/40 whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-pink-400 shrink-0" />
               <span>{t.featSafeToSpend}</span>
             </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-teal-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-teal-100/50 dark:shadow-slate-950/40">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-teal-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-teal-100/50 dark:shadow-slate-950/40 whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />
               <span>{t.featZeroOverdraft}</span>
             </div>
@@ -341,7 +341,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right Cute Floating Candy Cluster (No white card container) */}
-        <div className="hidden lg:flex flex-col items-center justify-center w-60 shrink-0 space-y-5 select-none pointer-events-none">
+        <div className="hidden lg:flex flex-col items-center justify-center w-64 shrink-0 space-y-5 select-none pointer-events-none">
           {/* Main Lollipop Illustration Floating */}
           <div className="relative">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-teal-100/40 via-white/80 to-pink-200/40 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 flex items-center justify-center shadow-lg shadow-teal-100/40 dark:shadow-slate-950 border border-teal-200/60 dark:border-slate-700 backdrop-blur-sm">
@@ -358,11 +358,11 @@ export default function LoginPage() {
 
           {/* Minimal Floating Feature Badges */}
           <div className="flex flex-col items-center gap-2.5 w-full">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-purple-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-purple-100/50 dark:shadow-slate-950/40">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-purple-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-purple-100/50 dark:shadow-slate-950/40 whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-purple-400 shrink-0" />
               <span>{t.featDoubleCheck}</span>
             </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-amber-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-amber-100/50 dark:shadow-slate-950/40">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-amber-200/60 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm shadow-amber-100/50 dark:shadow-slate-950/40 whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
               <span>{t.featFolders}</span>
             </div>

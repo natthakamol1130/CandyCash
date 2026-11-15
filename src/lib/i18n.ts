@@ -36,10 +36,10 @@ export const translations = {
     quickFillTitle: 'Click demo account to auto-fill:',
 
     // Side Decorations (Concise badges)
-    featSafeToSpend: 'Daily Safe-to-Spend',
-    featZeroOverdraft: 'Zero Overdraft Guard',
-    featDoubleCheck: 'Double-Check Protection',
-    featFolders: 'Custom Money Folders',
+    featSafeToSpend: 'Daily Spending Calculator',
+    featZeroOverdraft: 'Over-Budget Protection Guard',
+    featDoubleCheck: 'Pre-Confirm Summary Guard',
+    featFolders: 'Goal-Based Money Pockets',
 
     // Dashboard
     totalNetBalance: 'Total Net Balance',
@@ -167,10 +167,10 @@ export const translations = {
     quickFillTitle: 'เลือกบัญชีทดสอบในระบบ (กดเพื่อกรอกอัตโนมัติ):',
 
     // Side Decorations (Concise badges)
-    featSafeToSpend: 'คำนวณงบปลอดภัยรายวัน',
-    featZeroOverdraft: 'ระบบป้องกันเงินติดลบ',
-    featDoubleCheck: 'ตรวจสอบสองชั้นกันกดพลาด',
-    featFolders: 'โฟลเดอร์เงินปรับแต่งได้',
+    featSafeToSpend: 'คำนวณเงินใช้จ่ายต่อวัน',
+    featZeroOverdraft: 'ระบบป้องกันการจ่ายเงินเกินงบ',
+    featDoubleCheck: 'สรุปตรวจทานยอด ป้องกันบันทึกผิด',
+    featFolders: 'แยกกระเป๋าเงินตามเป้าหมาย',
 
     // Dashboard
     totalNetBalance: 'ยอดเงินคงเหลือรวมสุทธิ',
