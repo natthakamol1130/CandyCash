@@ -50,7 +50,7 @@ export function CandyIcon({ className = 'w-6 h-6', size = 32 }: { className?: st
   );
 }
 
-export function LollipopIcon({ className = 'w-5 h-5', size = 20 }: { className?: string; size?: number }) {
+export function LollipopIcon({ className = '', size = 24 }: { className?: string; size?: number }) {
   return (
     <svg
       width={size}
@@ -59,22 +59,37 @@ export function LollipopIcon({ className = 'w-5 h-5', size = 20 }: { className?:
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      style={{ display: 'inline-block', maxWidth: `${size}px`, maxHeight: `${size}px` }}
+      style={{ display: 'inline-block', width: `${size}px`, height: `${size}px`, maxWidth: '100%', maxHeight: '100%' }}
     >
-      <circle cx="12" cy="9" r="6.5" fill="#fce7f3" stroke="#f472b6" strokeWidth="1" />
+      {/* Lollipop Candy Head */}
+      <circle cx="12" cy="9" r="6.8" fill="#fce7f3" stroke="#f472b6" strokeWidth="1.2" />
+      {/* Candy Swirls */}
       <path
-        d="M12 9C12 7.6 10.9 6.5 9.5 6.5"
+        d="M12 9C12 7.2 10.5 5.8 8.8 5.8"
         stroke="#6ee7b7"
-        strokeWidth="1.5"
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
       <path
-        d="M12 9C12 10.4 13.1 11.5 14.5 11.5"
+        d="M12 9C12 10.8 13.5 12.2 15.2 12.2"
         stroke="#f472b6"
-        strokeWidth="1.5"
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
-      <line x1="12" y1="15.5" x2="12" y2="22.5" stroke="#f9a8d4" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M9.2 11.8C10.5 12.8 12.5 12.8 13.8 11.5"
+        stroke="#a7f3d0"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      {/* Glossy shine */}
+      <ellipse cx="9.8" cy="6.8" rx="1.6" ry="0.9" fill="#ffffff" opacity="0.9" />
+      {/* Stick */}
+      <line x1="12" y1="15.8" x2="12" y2="23" stroke="#f9a8d4" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Cute Little Bow on the Stick */}
+      <path d="M12 16L9.5 14.5V17.5L12 16Z" fill="#a7f3d0" stroke="#6ee7b7" strokeWidth="0.6" />
+      <path d="M12 16L14.5 14.5V17.5L12 16Z" fill="#a7f3d0" stroke="#6ee7b7" strokeWidth="0.6" />
+      <circle cx="12" cy="16" r="1.1" fill="#f472b6" />
     </svg>
   );
 }
@@ -128,7 +143,7 @@ export function SparkleIcon({
   );
 }
 
-export function CandyJarIcon({ className = 'w-12 h-12', size = 48 }: { className?: string; size?: number }) {
+export function CandyJarIcon({ className = '', size = 48 }: { className?: string; size?: number }) {
   return (
     <svg
       width={size}
@@ -137,7 +152,7 @@ export function CandyJarIcon({ className = 'w-12 h-12', size = 48 }: { className
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      style={{ display: 'inline-block', maxWidth: `${size}px`, maxHeight: `${size}px` }}
+      style={{ display: 'inline-block', width: `${size}px`, height: `${size}px`, maxWidth: '100%', maxHeight: '100%' }}
     >
       {/* Jar lid */}
       <rect x="16" y="6" width="16" height="4" rx="2" fill="#f472b6" />

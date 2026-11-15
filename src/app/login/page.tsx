@@ -191,7 +191,7 @@ export default function LoginPage() {
           {/* Main Candy Jar Illustration Floating */}
           <div className="relative">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-pink-200/40 via-white/80 to-teal-100/40 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 flex items-center justify-center shadow-lg shadow-pink-100/40 dark:shadow-slate-950 border border-pink-200/60 dark:border-slate-700 backdrop-blur-sm">
-              <CandyJarIcon size={56} />
+              <CandyJarIcon size={58} />
             </div>
             {/* Sparkles around Jar */}
             <div className="absolute -top-3 -right-2 animate-pulse">
@@ -345,7 +345,7 @@ export default function LoginPage() {
           {/* Main Lollipop Illustration Floating */}
           <div className="relative">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-teal-100/40 via-white/80 to-pink-200/40 dark:from-slate-800 dark:via-slate-850 dark:to-slate-800 flex items-center justify-center shadow-lg shadow-teal-100/40 dark:shadow-slate-950 border border-teal-200/60 dark:border-slate-700 backdrop-blur-sm">
-              <LollipopIcon size={52} />
+              <LollipopIcon size={58} />
             </div>
             {/* Sparkles around Lollipop */}
             <div className="absolute -top-3 -left-2 animate-pulse">
