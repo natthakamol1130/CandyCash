@@ -254,3 +254,84 @@ export function ThemeToggle({
     </div>
   );
 }
+
+export function GlitterGlint({
+  className = '',
+  size = 12,
+  color = '#ffffff',
+  duration = 3,
+  delay = 0,
+}: {
+  className?: string;
+  size?: number;
+  color?: string;
+  duration?: number;
+  delay?: number;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 pointer-events-none ${className}`}
+      style={{
+        display: 'inline-block',
+        maxWidth: `${size}px`,
+        maxHeight: `${size}px`,
+        animation: `glitterTwinklePulse ${duration}s ease-in-out infinite`,
+        animationDelay: `${delay}s`,
+        transformOrigin: '50% 50%',
+      }}
+    >
+      <path
+        d="M12 0L13.5 9L21 12L13.5 15L12 24L10.5 15L3 12L10.5 9L12 0Z"
+        fill={color}
+      />
+      <circle cx="12" cy="12" r="2.5" fill="#ffffff" opacity="0.9" />
+    </svg>
+  );
+}
+
+export function GlitterOverlay() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {/* Repeating fine glitter shimmer texture */}
+      <div className="absolute inset-0 opacity-85 dark:opacity-0 glitter-bg-light transition-opacity duration-500" />
+      <div className="absolute inset-0 opacity-0 dark:opacity-90 glitter-bg-dark transition-opacity duration-500" />
+
+      {/* Floating micro diamond glints that twinkle like real glitter */}
+      <div className="absolute top-[8%] left-[12%]">
+        <GlitterGlint size={14} color="#fde047" duration={2.4} delay={0.2} />
+      </div>
+      <div className="absolute top-[18%] right-[18%]">
+        <GlitterGlint size={16} color="#ffffff" duration={3.1} delay={0.8} />
+      </div>
+      <div className="absolute top-[28%] left-[25%] hidden sm:block">
+        <GlitterGlint size={11} color="#f472b6" duration={2.8} delay={1.4} />
+      </div>
+      <div className="absolute top-[42%] right-[8%]">
+        <GlitterGlint size={15} color="#34d399" duration={3.5} delay={0.5} />
+      </div>
+      <div className="absolute top-[55%] left-[8%] hidden sm:block">
+        <GlitterGlint size={13} color="#ffffff" duration={2.6} delay={1.8} />
+      </div>
+      <div className="absolute top-[68%] right-[22%]">
+        <GlitterGlint size={17} color="#fbbf24" duration={3.2} delay={1.1} />
+      </div>
+      <div className="absolute top-[82%] left-[16%]">
+        <GlitterGlint size={12} color="#a78bfa" duration={2.9} delay={0.7} />
+      </div>
+      <div className="absolute top-[90%] right-[12%] hidden sm:block">
+        <GlitterGlint size={15} color="#ffffff" duration={3.6} delay={1.5} />
+      </div>
+      <div className="absolute top-[35%] left-[45%] hidden md:block">
+        <GlitterGlint size={10} color="#fef08a" duration={2.2} delay={0.3} />
+      </div>
+      <div className="absolute top-[75%] left-[60%] hidden md:block">
+        <GlitterGlint size={12} color="#38bdf8" duration={3.0} delay={1.9} />
+      </div>
+    </div>
+  );
+}

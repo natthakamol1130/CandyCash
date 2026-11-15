@@ -33,6 +33,7 @@ import {
   LanguageToggle,
   ThemeToggle,
   ThemeMode,
+  GlitterOverlay,
 } from '@/components/CandyIcons';
 
 interface UserSession {
@@ -623,8 +624,8 @@ export default function DashboardPage() {
       <div className="pointer-events-none fixed -bottom-32 -right-32 w-96 h-96 rounded-full bg-teal-100/20 dark:bg-teal-900/15 blur-3xl" />
       <div className="pointer-events-none fixed top-1/3 -right-20 w-80 h-80 rounded-full bg-rose-100/25 dark:bg-purple-900/10 blur-2xl" />
 
-      {/* Very faint candy dots pattern */}
-      <div className="pointer-events-none fixed inset-0 opacity-[0.12] dark:opacity-[0.05] [background-image:radial-gradient(#f472b6_1px,transparent_1px)] [background-size:28px_28px]" />
+      {/* Shimmering Glitter Background Overlay */}
+      <GlitterOverlay />
 
       {/* Twinkling & Floating Stars / Sparkles & Candies scattered across Dashboard background */}
       {/* Top Left */}

@@ -13,6 +13,7 @@ import {
   LanguageToggle,
   ThemeToggle,
   ThemeMode,
+  GlitterOverlay,
 } from '@/components/CandyIcons';
 
 export default function LoginPage() {
@@ -102,8 +103,8 @@ export default function LoginPage() {
         <LanguageToggle lang={lang} onChange={handleLangChange} />
       </div>
 
-      {/* Very faint candy dots pattern */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.12] dark:opacity-[0.06] [background-image:radial-gradient(#f472b6_1px,transparent_1px)] [background-size:28px_28px]" />
+      {/* Shimmering Glitter Background Overlay */}
+      <GlitterOverlay />
 
       {/* Twinkling & Rotating Stars / Sparkles & Candies scattered generously across background */}
       {/* Top Left Cluster */}
