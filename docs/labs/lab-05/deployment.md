@@ -31,7 +31,7 @@
 | **Cloud Run Service** | `<prefix>` | Runs the unified Next.js + Prisma production container on port `3000` (`min-instances=0`, `max-instances=3`, `memory=512Mi`) |
 | **Runtime Service Account** | `<prefix>-runner@cpe-se-course-2026.iam.gserviceaccount.com` | Least-privilege identity with `roles/cloudsql.client` and secret-level `roles/secretmanager.secretAccessor` |
 | **Deployer Service Account** | `<prefix>-deployer@cpe-se-course-2026.iam.gserviceaccount.com` | Keyless GitHub Actions identity authenticated via Workload Identity Federation (WIF) |
-| **Secret Manager Secrets** | `<prefix>-database-url`, `<prefix>-jwt-secret`, `<prefix>-admin-password`, `<prefix>-demo-password` | Stores sensitive runtime connection strings, JWT signing key, and initial seeded credentials outside Git |
+| **Secret Manager Secrets** | `<prefix>-database-url`, `<prefix>-app-secret-1`, `<prefix>-admin-password`, `<prefix>-demo-password` | Stores sensitive runtime connection strings, optional JWT signing key (`JWT_SECRET`, falls back to `DATABASE_URL` if unset), and initial seeded credentials outside Git |
 
 ### 2.3 Cost Control & Safety Guardrails
 1. **Scale-to-Zero Compute:** Cloud Run service is configured with `--min-instances 0` and `--max-instances 3` so idle periods incur zero compute instance charges.
@@ -56,10 +56,10 @@ All configuration values are read from environment variables and documented with
 | Variable | Purpose | Secret? | Source (Local vs. Cloud Run) |
 | :--- | :--- | :---: | :--- |
 | `DATABASE_URL` | PostgreSQL 16 connection string for Prisma ORM | **Yes** | Local `.env` / Cloud Run Secret Manager (`<prefix>-database-url`) |
-| `JWT_SECRET` | HS256 signing key for HTTP-only session cookies | **Yes** | Local `.env` / Cloud Run Secret Manager (`<prefix>-jwt-secret`) |
+| `JWT_SECRET` | HS256 signing key for HTTP-only session cookies | **Yes** | Local `.env` / Cloud Run Secret Manager (`<prefix>-app-secret-1`); falls back to `DATABASE_URL` in production if unset |
 | `PORT` | HTTP server port (`0.0.0.0:$PORT`, default `3000`) | No | Local default `3000` / Injected automatically by Cloud Run |
-| `NODE_ENV` | Runtime mode (`development` or `production`) | No | Local `.env` / Cloud Run `--set-env-vars NODE_ENV=production` |
-| `TZ` | Runtime timezone (`Asia/Bangkok`) | No | Cloud Run `--set-env-vars TZ=Asia/Bangkok` |
+| `NODE_ENV` | Runtime mode (`development` or `production`) | No | Local `.env` / Cloud Run `--update-env-vars NODE_ENV=production` (never use `--set-env-vars` so portal-managed vars are not overwritten) |
+| `TZ` | Runtime timezone (`Asia/Bangkok`) | No | Cloud Run `--update-env-vars TZ=Asia/Bangkok` |
 | `ADMIN_PASSWORD` | Initial password for `admin@candycash.local` during seed | **Yes** | Local fallback / Cloud Run Job Secret Manager (`<prefix>-admin-password`) |
 | `SEED_DEMO_DATA` | Toggle demo users & sample wallets (`true`/`false`) | No | Local default `true` / Cloud Run Job env var (`false` unless `--demo`) |
 | `DEMO_USER_PASSWORD` | Initial password for demo accounts when `SEED_DEMO_DATA=true` | **Yes** | Local fallback / Cloud Run Job Secret Manager (`<prefix>-demo-password`) |

@@ -85,6 +85,7 @@ export default function LoginPage() {
   };
 
   const fillAccount = (accountEmail: string) => {
+    if (isProd) return;
     setEmail(accountEmail);
     setPassword('password123');
     setError('');
