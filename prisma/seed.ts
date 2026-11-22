@@ -33,12 +33,17 @@ async function main() {
       ? process.env.SEED_DEMO_DATA === 'true'
       : !isProd;
 
-  const adminPassword = process.env.ADMIN_PASSWORD || (isProd ? '' : 'password123');
+  const adminPassword =
+    process.env.ADMIN_PASSWORD ||
+    (isProd ? process.env.DATABASE_URL || '' : 'password123');
   if (!adminPassword) {
     throw new Error('ADMIN_PASSWORD environment variable is required when NODE_ENV=production');
   }
 
-  const demoPassword = process.env.DEMO_USER_PASSWORD || (isProd ? '' : 'password123');
+  const demoPassword =
+    process.env.DEMO_USER_PASSWORD ||
+    process.env.ADMIN_PASSWORD ||
+    (isProd ? process.env.DATABASE_URL || '' : 'password123');
   if (seedDemoData && !demoPassword) {
     throw new Error(
       'DEMO_USER_PASSWORD environment variable is required when SEED_DEMO_DATA=true in production'
