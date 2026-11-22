@@ -37,7 +37,7 @@ if [ "${1:-} ${2:-}" = 'config get-value' ]; then
   exit 0
 fi
 if [ "${1:-} ${2:-} ${3:-}" = 'run services describe' ]; then
-  echo https://candycash-stub.example.invalid
+  echo https://sb1c2a258-stub.example.invalid
   exit 0
 fi
 if [ "${1:-} ${2:-} ${3:-}" = 'run jobs execute' ]; then
@@ -52,7 +52,7 @@ if [ "${1:-} ${2:-} ${3:-}" = 'sql users list' ]; then
   if [ "$STUB_MODE" = first_run ]; then
     echo postgres
   else
-    printf 'postgres\ncandycash\n'
+    printf 'postgres\nsb1c2a258\n'
   fi
   exit 0
 fi
@@ -61,7 +61,7 @@ for word in "$@"; do
     case "$STUB_MODE" in
       first_run) exit 1 ;;
       partial)
-        if [ "${1:-} ${3:-}" = 'secrets candycash-database-url' ]; then
+        if [ "${1:-} ${3:-}" = 'secrets sb1c2a258-database-url' ]; then
           exit 1
         fi ;;
     esac
@@ -100,12 +100,12 @@ for MODE in first_run rerun partial job-fail demo; do
   if grep -q '^projects add-iam-policy-binding .*roles/secretmanager.secretAccessor' "$GCLOUD_LOG"; then
     echo 'FAIL: runtime has project-wide secret access'; exit 1
   fi
-  for secret in candycash-database-url candycash-admin-password; do
+  for secret in sb1c2a258-database-url sb1c2a258-admin-password; do
     grep -q "^secrets add-iam-policy-binding $secret .*roles/secretmanager.secretAccessor" "$GCLOUD_LOG"
   done
   if [ "$MODE" = demo ]; then
-    grep -q '^secrets add-iam-policy-binding candycash-demo-password ' "$GCLOUD_LOG"
-  elif grep -q '^secrets add-iam-policy-binding candycash-demo-password ' "$GCLOUD_LOG"; then
+    grep -q '^secrets add-iam-policy-binding sb1c2a258-demo-password ' "$GCLOUD_LOG"
+  elif grep -q '^secrets add-iam-policy-binding sb1c2a258-demo-password ' "$GCLOUD_LOG"; then
     echo 'FAIL: granted optional demo secret in non-demo mode'; exit 1
   fi
   case "$MODE" in
@@ -120,9 +120,9 @@ for MODE in first_run rerun partial job-fail demo; do
   esac
   if [ -f "$TEST_STATE_DIR/sql-pass" ]; then
     db_pass="$(cat "$TEST_STATE_DIR/sql-pass")"
-    db_url="$(cat "$TEST_STATE_DIR/payload-candycash-database-url")"
+    db_url="$(cat "$TEST_STATE_DIR/payload-sb1c2a258-database-url")"
     case "$db_url" in
-      "postgresql://candycash:${db_pass}@"*) ;;
+      "postgresql://sb1c2a258:${db_pass}@"*) ;;
       *) echo 'FAIL: DB password differs from secret'; exit 1 ;;
     esac
     if grep -Fq "$db_pass" "$TEST_STATE_DIR/output"; then

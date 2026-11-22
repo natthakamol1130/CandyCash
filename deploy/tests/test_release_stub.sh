@@ -20,7 +20,7 @@ if [ "${STUB_FAIL_JOB:-0}" = "1" ] && [ "${1:-}" = "run" ] && [ "${2:-}" = "jobs
   exit 1
 fi
 if [ "${1:-}" = "run" ] && [ "${2:-}" = "services" ] && [ "${3:-}" = "describe" ]; then
-  echo "https://candycash-stub-as.a.run.app"
+  echo "https://sb1c2a258-4d7hbszvwq-as.a.run.app"
 fi
 exit 0
 EOF
@@ -29,9 +29,9 @@ chmod +x "$TMP_DIR/bin/gcloud"
 # 1. Successful release runs migration job BEFORE service deploy
 rm -f "$TEST_STATE_DIR/gcloud.log"
 bash "$RELEASE_SCRIPT" my-proj abc1234 asia-southeast1 > "$TMP_DIR/out.txt"
-grep -q '^run jobs update candycash-migrate ' "$TEST_STATE_DIR/gcloud.log"
-grep -q '^run jobs execute candycash-migrate ' "$TEST_STATE_DIR/gcloud.log"
-grep -q '^run deploy candycash ' "$TEST_STATE_DIR/gcloud.log"
+grep -q '^run jobs update sb1c2a258-migrate ' "$TEST_STATE_DIR/gcloud.log"
+grep -q '^run jobs execute sb1c2a258-migrate ' "$TEST_STATE_DIR/gcloud.log"
+grep -q '^run deploy sb1c2a258 ' "$TEST_STATE_DIR/gcloud.log"
 echo "PASS: release runs migration job before service rollout"
 
 # 2. Failed migration job aborts before service deploy
@@ -44,7 +44,7 @@ if [ "$rc" -eq 0 ]; then
   echo "FAIL: expected non-zero exit when migration job fails"
   exit 1
 fi
-if grep -q '^run deploy candycash ' "$TEST_STATE_DIR/gcloud.log"; then
+if grep -q '^run deploy sb1c2a258 ' "$TEST_STATE_DIR/gcloud.log"; then
   echo "FAIL: service was deployed even though migration failed"
   exit 1
 fi

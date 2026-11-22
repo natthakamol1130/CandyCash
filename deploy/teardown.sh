@@ -32,17 +32,17 @@ if [[ "$PROJECT_ID" == *"cpe-se-course-2026"* ]]; then
   exit 1
 fi
 
-REPO_NAME="${REPO_NAME:-candycash}"
-SQL_INSTANCE="${SQL_INSTANCE:-candycash-pg}"
-SERVICE_NAME="${SERVICE_NAME:-candycash}"
-MIGRATE_JOB_NAME="${MIGRATE_JOB_NAME:-candycash-migrate}"
-SA_NAME="${SA_NAME:-candycash-runner}"
+REPO_NAME="${REPO_NAME:-sb1c2a258}"
+SQL_INSTANCE="${SQL_INSTANCE:-sb1c2a258-pg}"
+SERVICE_NAME="${SERVICE_NAME:-sb1c2a258}"
+MIGRATE_JOB_NAME="${MIGRATE_JOB_NAME:-sb1c2a258-migrate}"
+SA_NAME="${SA_NAME:-sb1c2a258-runner}"
 SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 SECRETS=(
-  "candycash-database-url"
-  "candycash-admin-password"
-  "candycash-demo-password"
+  "sb1c2a258-database-url"
+  "sb1c2a258-admin-password"
+  "sb1c2a258-demo-password"
 )
 
 run_cmd() {
