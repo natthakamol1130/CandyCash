@@ -40,7 +40,8 @@ describe('F-01: Authentication & Role-Based Session Guard', () => {
     it('should authenticate user1 successfully and return a signed JWT token with valid payload', async () => {
       const result = await loginUser('user1@candycash.local', 'password123');
 
-      expect(result.success).toBe(true);
+      // [L5-06 Proof]: Intentionally break assertion to trigger CI failure and verify branch protection merge gate
+      expect(result.success).toBe(false);
       expect(result.token).toBeDefined();
       expect(result.user).toBeDefined();
       expect(result.user?.email).toBe('user1@candycash.local');
