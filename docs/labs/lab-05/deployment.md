@@ -126,3 +126,37 @@ docker exec candycash-server id
 # Tear down containers (add -v only if resetting local PostgreSQL data)
 docker compose down
 ```
+
+---
+
+## 8. Repeatable CI/CD Release & Rollback Procedure (L5-06, L5-07, L5-08 / R-07, R-08)
+
+### 8.1 GitHub Environment (`demo`) & Merge Gate (`protect-main`)
+- **Keyless Authentication (Workload Identity Federation):** GitHub Actions authenticates to GCP project `cpe-se-course-2026` as `sb1c2a258-deployer@cpe-se-course-2026.iam.gserviceaccount.com` via `google-github-actions/auth` using OIDC (`id-token: write`). Zero service-account JSON keys exist in GitHub or GCP.
+- **GitHub Environment `demo` (restricted to `main`):**
+  - `GCP_PROJECT_ID`: `cpe-se-course-2026`
+  - `GCP_REGION`: `asia-southeast1`
+  - `WIF_PROVIDER`: Workload Identity Pool Provider resource path for `sb1c2a258`
+  - `WIF_SERVICE_ACCOUNT`: `sb1c2a258-deployer@cpe-se-course-2026.iam.gserviceaccount.com`
+  - Optional smoke-test credentials: `SMOKE_EMAIL` (variable) and `SMOKE_PASSWORD` (secret)
+- **Branch Protection Ruleset (`protect-main`):** Active on `main` with an empty bypass list, requiring pull request review (`1` approval), up-to-date branches, and passing `test-and-docker` status check before merge (`R-05`, `R-06`, `C-02`).
+
+### 8.2 Automated Release Pipeline (`.github/workflows/deploy.yml`)
+Every merge into `main` triggers the **`Deploy demo`** workflow automatically:
+1. **`test` job:** Calls `./.github/workflows/ci-docker.yml` (`test-and-docker`) to re-verify all deployment scripts, PostgreSQL migrations, seed, 52 Vitest unit/integration tests, TypeScript check, Next.js build, and Docker build.
+2. **`deploy` job (`environment: demo`):**
+   - Validates `PROJECT_ID`, `REGION`, `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT`, and the 40-character commit SHA `IMAGE_TAG`.
+   - Authenticates to GCP via WIF and pushes `asia-southeast1-docker.pkg.dev/cpe-se-course-2026/sb1c2a258/sb1c2a258:<40-char-SHA>`.
+   - Runs `bash deploy/release.sh`, which resolves the immutable `@sha256` digest, updates and executes `sb1c2a258-migrate` (`npx prisma migrate deploy && npm run prisma:seed`), and only after migration succeeds updates the `sb1c2a258` Cloud Run service and shifts 100% traffic to the latest revision.
+   - Executes `python3 deploy/smoke_test.py "$SERVICE_URL"` against `https://sb1c2a258-4d7hbszvwq-as.a.run.app` (`/api/health`, `/api/ready`, `/`, `/login`, and optional login round-trip).
+   - Writes the deployed commit SHA tag, `@sha256` image digest, rollback flag, and public URL to the GitHub Actions run summary (`$GITHUB_STEP_SUMMARY`).
+
+### 8.3 How to Identify the Running Commit & Perform a Rollback (`R-08`, `C-05`)
+- **Identify Running Commit:**
+  1. Open **GitHub Actions -> Deploy demo -> latest run -> Summary** to read `Commit image tag` (full 40-character Git SHA) and `Digest` (`@sha256:...`).
+  2. In **Google Cloud Console -> Cloud Run -> `sb1c2a258` -> Revisions**, verify the active revision serving 100% traffic matches the exact `@sha256` digest and commit SHA in Artifact Registry (`sb1c2a258/sb1c2a258`).
+- **Rollback / Roll-Forward Procedure:**
+  1. In GitHub, navigate to **Actions -> Deploy demo -> Run workflow** on branch `main`.
+  2. Paste the full 40-character commit SHA of an existing tested image in Artifact Registry into `image_tag` and click **Run workflow**.
+  3. When `image_tag` is provided (`ROLLBACK=true`), the workflow skips `test`, image build, and `sb1c2a258-migrate`, resolves the existing image's `@sha256` digest, updates `sb1c2a258` to serve 100% traffic on that digest, and verifies the live URL with `deploy/smoke_test.py`.
+  4. To roll forward, run `Deploy demo` again with the newer 40-character commit SHA (or leave `image_tag` empty to deploy the head of `main`).
