@@ -2,6 +2,11 @@
 # ==============================================================================
 # CandyCash — Cleanup / Teardown Script for GCP Resources
 # ==============================================================================
+# ⚠️ WARNING: DO NOT RUN THIS SCRIPT ON THE SHARED COURSE PROJECT (cpe-se-course-2026)!
+# This script permanently deletes Cloud Run services, jobs, Cloud SQL instances,
+# Artifact Registry repositories, and Secret Manager secrets. It is strictly intended
+# for personal sandbox GCP projects or end-of-semester course cleanup.
+# ==============================================================================
 # Usage:
 #   ./deploy/teardown.sh [PROJECT_ID] [REGION]
 #
@@ -19,6 +24,11 @@ if [ -z "$PROJECT_ID" ]; then
 fi
 if [ -z "$PROJECT_ID" ]; then
   echo "ERROR: PROJECT_ID is required. Usage: $0 <PROJECT_ID> [REGION]" >&2
+  exit 1
+fi
+
+if [[ "$PROJECT_ID" == *"cpe-se-course-2026"* ]]; then
+  echo "ERROR: Refusing to run teardown on shared course project: $PROJECT_ID" >&2
   exit 1
 fi
 
