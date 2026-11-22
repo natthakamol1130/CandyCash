@@ -240,7 +240,7 @@ export default function LoginPage() {
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 dark:bg-slate-800 border border-pink-200/60 dark:border-slate-700 text-[11px] font-medium text-pink-600 dark:text-pink-400 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-              {t.sweetBadge}
+              {t.sweetBadge} • Release 2
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
               {t.loginTitle} <span className="text-pink-500 font-extrabold">{t.brandName}</span>

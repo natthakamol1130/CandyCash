@@ -7,7 +7,7 @@ export default function HomePage() {
           Personal Money and Expense Logging System (ระบบบันทึกรายรับ-รายจ่ายส่วนตัว)
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-50 text-pink-600 text-sm font-semibold">
-          Sprint 1 Engineering Baseline Ready
+          Sprint 1 Engineering Baseline Ready (Cloud Run Release 2)
         </div>
       </div>
     </main>
