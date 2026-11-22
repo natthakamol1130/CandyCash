@@ -157,6 +157,6 @@ Every merge into `main` triggers the **`Deploy demo`** workflow automatically:
   2. In **Google Cloud Console -> Cloud Run -> `sb1c2a258` -> Revisions**, verify the active revision serving 100% traffic matches the exact `@sha256` digest and commit SHA in Artifact Registry (`sb1c2a258/sb1c2a258`).
 - **Rollback / Roll-Forward Procedure:**
   1. In GitHub, navigate to **Actions -> Deploy demo -> Run workflow** on branch `main`.
-  2. Paste the full 40-character commit SHA of an existing tested image in Artifact Registry into `image_tag` and click **Run workflow**.
+  2. Paste the full 40-character commit SHA of an existing tested image in Artifact Registry (for example, **Release A**: `47b4c316ed1f3056498a7b974ab837507cb70176`, deployed in [Actions Run #45066805664](https://github.com/natthakamol1130/CandyCash/actions/runs/45066805664)) into `image_tag` and click **Run workflow**.
   3. When `image_tag` is provided (`ROLLBACK=true`), the workflow skips `test`, image build, and `sb1c2a258-migrate`, resolves the existing image's `@sha256` digest, updates `sb1c2a258` to serve 100% traffic on that digest, and verifies the live URL with `deploy/smoke_test.py`.
-  4. To roll forward, run `Deploy demo` again with the newer 40-character commit SHA (or leave `image_tag` empty to deploy the head of `main`).
+  4. To roll forward, run `Deploy demo` again with the newer 40-character commit SHA of **Release B** (or leave `image_tag` empty to deploy the head of `main`).
