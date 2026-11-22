@@ -80,6 +80,7 @@ if [[ "$ROLLBACK" == "false" ]]; then
     --command "sh" \
     --args "-c,npx prisma migrate deploy && npm run prisma:seed" \
     --update-env-vars "NODE_ENV=production,TZ=Asia/Bangkok,SEED_DEMO_DATA=true" \
+    --update-secrets "DATABASE_URL=${REPO_NAME}-database-url:latest,ADMIN_PASSWORD=${REPO_NAME}-admin-password:latest,DEMO_USER_PASSWORD=${REPO_NAME}-demo-password:latest" \
     --quiet
 
   if ! run_cmd gcloud run jobs execute "$MIGRATE_JOB_NAME" \
@@ -88,6 +89,9 @@ if [[ "$ROLLBACK" == "false" ]]; then
     --project "$PROJECT_ID" \
     --quiet; then
     echo "ERROR: Migration job '${MIGRATE_JOB_NAME}' failed. Service was NOT updated." >&2
+    if [ "$DRY_RUN" != "1" ]; then
+      gcloud beta run jobs logs read "$MIGRATE_JOB_NAME" --region "$REGION" --project "$PROJECT_ID" --limit 50 || true
+    fi
     exit 1
   fi
 else
