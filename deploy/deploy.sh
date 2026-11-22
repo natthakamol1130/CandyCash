@@ -78,23 +78,23 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# Resource names
+# Resource names (Team maimuu — assigned prefix: sb1c2a258)
 # ------------------------------------------------------------------------------
-REPO_NAME="${REPO_NAME:-candycash}"
-SQL_INSTANCE="${SQL_INSTANCE:-candycash-pg}"
-DB_NAME="${DB_NAME:-candycash}"
-DB_USER="${DB_USER:-candycash}"
-SERVICE_NAME="${SERVICE_NAME:-candycash}"
-MIGRATE_JOB_NAME="${MIGRATE_JOB_NAME:-candycash-migrate}"
-SA_NAME="${SA_NAME:-candycash-runner}"
+REPO_NAME="${REPO_NAME:-sb1c2a258}"
+SQL_INSTANCE="${SQL_INSTANCE:-sb1c2a258-pg}"
+DB_NAME="${DB_NAME:-sb1c2a258}"
+DB_USER="${DB_USER:-sb1c2a258}"
+SERVICE_NAME="${SERVICE_NAME:-sb1c2a258}"
+MIGRATE_JOB_NAME="${MIGRATE_JOB_NAME:-sb1c2a258-migrate}"
+SA_NAME="${SA_NAME:-sb1c2a258-runner}"
 SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 SQL_CONN_NAME="${PROJECT_ID}:${REGION}:${SQL_INSTANCE}"
 IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}:latest"
 
 # Secret Manager secret names (values are never stored in this repo).
-SECRET_DB_URL="candycash-database-url"
-SECRET_ADMIN_PASS="candycash-admin-password"
-SECRET_DEMO_PASS="candycash-demo-password"
+SECRET_DB_URL="sb1c2a258-database-url"
+SECRET_ADMIN_PASS="sb1c2a258-admin-password"
+SECRET_DEMO_PASS="sb1c2a258-demo-password"
 
 GENERATED_ADMIN_PASSWORD=""
 GENERATED_DEMO_PASSWORD=""

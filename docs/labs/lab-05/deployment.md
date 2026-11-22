@@ -20,18 +20,19 @@
 ### 2.1 Cloud Platform Environment
 - **GCP Project ID:** `cpe-se-course-2026` (Course Managed Cloud Platform via `https://cpe334-student-cloud-4d7hbszvwq-as.a.run.app`)
 - **Primary Region:** `asia-southeast1` (Singapore)
-- **Resource Prefix Convention:** `<prefix>` (assigned per team by the CPE 334 Student Cloud Portal)
+- **Team Name & Assigned Prefix:** `maimuu` / `sb1c2a258`
+- **Public Cloud Run Service URL:** `https://sb1c2a258-4d7hbszvwq-as.a.run.app`
 
 ### 2.2 Provisioned Cloud Resources
 | Resource Type | Naming Pattern | Purpose & Configuration |
 | :--- | :--- | :--- |
-| **Artifact Registry** | `asia-southeast1-docker.pkg.dev/cpe-se-course-2026/<prefix>/<prefix>` | Stores immutable Docker container images tagged with full 40-character Git commit SHAs |
-| **Cloud SQL (PostgreSQL 16)** | `<prefix>-pg` | Persistent managed relational database (`db-f1-micro`, Enterprise edition, 10 GB SSD, storage auto-increase disabled) |
-| **Cloud Run Migration Job** | `<prefix>-migrate` | Executes `npx prisma migrate deploy && npm run prisma:seed` prior to service traffic updates |
-| **Cloud Run Service** | `<prefix>` | Runs the unified Next.js + Prisma production container on port `3000` (`min-instances=0`, `max-instances=3`, `memory=512Mi`) |
-| **Runtime Service Account** | `<prefix>-runner@cpe-se-course-2026.iam.gserviceaccount.com` | Least-privilege identity with `roles/cloudsql.client` and secret-level `roles/secretmanager.secretAccessor` |
-| **Deployer Service Account** | `<prefix>-deployer@cpe-se-course-2026.iam.gserviceaccount.com` | Keyless GitHub Actions identity authenticated via Workload Identity Federation (WIF) |
-| **Secret Manager Secrets** | `<prefix>-database-url`, `<prefix>-app-secret-1`, `<prefix>-admin-password`, `<prefix>-demo-password` | Stores sensitive runtime connection strings, optional JWT signing key (`JWT_SECRET`, falls back to `DATABASE_URL` if unset), and initial seeded credentials outside Git |
+| **Artifact Registry** | `asia-southeast1-docker.pkg.dev/cpe-se-course-2026/sb1c2a258/sb1c2a258` | Stores immutable Docker container images tagged with full 40-character Git commit SHAs |
+| **Cloud SQL (PostgreSQL 16)** | `sb1c2a258-pg` | Persistent managed relational database (`db-f1-micro`, Enterprise edition, 10 GB SSD, storage auto-increase disabled) |
+| **Cloud Run Migration Job** | `sb1c2a258-migrate` | Executes `npx prisma migrate deploy && npm run prisma:seed` prior to service traffic updates |
+| **Cloud Run Service** | `sb1c2a258` | Runs the unified Next.js + Prisma production container on port `3000` (`min-instances=0`, `max-instances=3`, `memory=512Mi`) |
+| **Runtime Service Account** | `sb1c2a258-runner@cpe-se-course-2026.iam.gserviceaccount.com` | Least-privilege identity with `roles/cloudsql.client` and secret-level `roles/secretmanager.secretAccessor` |
+| **Deployer Service Account** | `sb1c2a258-deployer@cpe-se-course-2026.iam.gserviceaccount.com` | Keyless GitHub Actions identity authenticated via Workload Identity Federation (WIF) |
+| **Secret Manager Secrets** | `sb1c2a258-database-url`, `sb1c2a258-app-secret-1`, `sb1c2a258-admin-password`, `sb1c2a258-demo-password` | Stores sensitive runtime connection strings, optional JWT signing key (`JWT_SECRET`, falls back to `DATABASE_URL` if unset), and initial seeded credentials outside Git |
 
 ### 2.3 Cost Control & Safety Guardrails
 1. **Scale-to-Zero Compute:** Cloud Run service is configured with `--min-instances 0` and `--max-instances 3` so idle periods incur zero compute instance charges.
@@ -55,14 +56,14 @@ All configuration values are read from environment variables and documented with
 
 | Variable | Purpose | Secret? | Source (Local vs. Cloud Run) |
 | :--- | :--- | :---: | :--- |
-| `DATABASE_URL` | PostgreSQL 16 connection string for Prisma ORM | **Yes** | Local `.env` / Cloud Run Secret Manager (`<prefix>-database-url`) |
-| `JWT_SECRET` | HS256 signing key for HTTP-only session cookies | **Yes** | Local `.env` / Cloud Run Secret Manager (`<prefix>-app-secret-1`); falls back to `DATABASE_URL` in production if unset |
+| `DATABASE_URL` | PostgreSQL 16 connection string for Prisma ORM | **Yes** | Local `.env` / Cloud Run Secret Manager (`sb1c2a258-database-url`) |
+| `JWT_SECRET` | HS256 signing key for HTTP-only session cookies | **Yes** | Local `.env` / Cloud Run Secret Manager (`sb1c2a258-app-secret-1`); falls back to `DATABASE_URL` in production if unset |
 | `PORT` | HTTP server port (`0.0.0.0:$PORT`, default `3000`) | No | Local default `3000` / Injected automatically by Cloud Run |
 | `NODE_ENV` | Runtime mode (`development` or `production`) | No | Local `.env` / Cloud Run `--update-env-vars NODE_ENV=production` (never use `--set-env-vars` so portal-managed vars are not overwritten) |
 | `TZ` | Runtime timezone (`Asia/Bangkok`) | No | Cloud Run `--update-env-vars TZ=Asia/Bangkok` |
-| `ADMIN_PASSWORD` | Initial password for `admin@candycash.local` during seed | **Yes** | Local fallback / Cloud Run Job Secret Manager (`<prefix>-admin-password`) |
+| `ADMIN_PASSWORD` | Initial password for `admin@candycash.local` during seed | **Yes** | Local fallback / Cloud Run Job Secret Manager (`sb1c2a258-admin-password`) |
 | `SEED_DEMO_DATA` | Toggle demo users & sample wallets (`true`/`false`) | No | Local default `true` / Cloud Run Job env var (`false` unless `--demo`) |
-| `DEMO_USER_PASSWORD` | Initial password for demo accounts when `SEED_DEMO_DATA=true` | **Yes** | Local fallback / Cloud Run Job Secret Manager (`<prefix>-demo-password`) |
+| `DEMO_USER_PASSWORD` | Initial password for demo accounts when `SEED_DEMO_DATA=true` | **Yes** | Local fallback / Cloud Run Job Secret Manager (`sb1c2a258-demo-password`) |
 
 ---
 

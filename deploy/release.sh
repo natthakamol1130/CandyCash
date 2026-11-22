@@ -23,9 +23,9 @@ if [ -z "$PROJECT_ID" ] || [ -z "$IMAGE_TAG" ]; then
   exit 1
 fi
 
-REPO_NAME="${REPO_NAME:-candycash}"
-SERVICE_NAME="${SERVICE_NAME:-candycash}"
-MIGRATE_JOB_NAME="${MIGRATE_JOB_NAME:-candycash-migrate}"
+REPO_NAME="${REPO_NAME:-sb1c2a258}"
+SERVICE_NAME="${SERVICE_NAME:-sb1c2a258}"
+MIGRATE_JOB_NAME="${MIGRATE_JOB_NAME:-sb1c2a258-migrate}"
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}:${IMAGE_TAG}"
 
 run_cmd() {
