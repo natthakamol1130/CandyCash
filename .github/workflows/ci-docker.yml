@@ -1,0 +1,71 @@
+name: CI — Tests & Docker Build
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [main, staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-docker:
+    name: Tests, Typecheck, Build & Docker
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: candycash
+          POSTGRES_PASSWORD: candycash
+          POSTGRES_DB: candycash
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U candycash -d candycash"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6.4.0
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Deploy scripts syntax, stub tests & smoke unit tests
+        run: |
+          bash -n deploy/deploy.sh deploy/teardown.sh deploy/release.sh
+          bash deploy/tests/test_deploy_stub.sh
+          bash deploy/tests/test_release_stub.sh
+          python3 -m unittest discover -s deploy/tests -p 'test_smoke.py'
+
+      - name: Install, migrate, seed, test, typecheck & build
+        env:
+          DATABASE_URL: postgresql://candycash:candycash@localhost:5432/candycash?schema=public
+          JWT_SECRET: candycash-ci-test-jwt-secret
+          ADMIN_PASSWORD: ci-admin-password
+          DEMO_USER_PASSWORD: ci-demo-password
+          SEED_DEMO_DATA: "true"
+        run: |
+          npm ci
+          npx prisma generate
+          npx prisma migrate deploy
+          npm run prisma:seed
+          npm test
+          npx tsc --noEmit
+          npm run build
+
+      - name: Build production Docker image
+        run: docker build -t candycash-ci:latest .
