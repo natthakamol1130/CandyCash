@@ -93,3 +93,35 @@ npm test
 npx tsc --noEmit
 npm run build
 ```
+
+---
+
+## 7. Multi-Stage Docker Packaging & Local Compose Verification (L5-03 / R-03, R-04)
+
+### 7.1 Unified Multi-Stage `Dockerfile`
+- **Stage 1 (`deps`):** Installs locked dependencies via `npm ci` on `node:24-alpine` with `openssl` for Prisma.
+- **Stage 2 (`builder`):** Copies configuration, `prisma/`, and `src/`, runs `npx prisma generate && npm run build`.
+- **Stage 3 (`production`):** Copies only runtime assets (`package*.json`, `next.config.mjs`, `node_modules/`, `.next/`, `prisma/`, `docker-entrypoint.sh`) owned by `node:node`, runs as unprivileged `USER node`, listens on `0.0.0.0:$PORT` (default `3000`), and executes Next.js directly as PID 1 via `exec "$@"`.
+- **Context Isolation (`.dockerignore`):** Strictly excludes `.env*`, local `*.db`/`*.sqlite` files, `node_modules`, `.next`, `.git`, `tests`, `docs`, `*.pdf`, and reference starter folders from the Docker build context.
+
+### 7.2 Local Full-Stack Verification (`docker-compose.yml`)
+The Compose stack mirrors Cloud Run + Cloud SQL locally using three orchestrated services:
+1. `db` (`postgres:16-alpine`) with a persistent `postgres_data` volume and `pg_isready` healthcheck.
+2. `migrate` (one-shot container built from `Dockerfile`) waiting on `db: service_healthy` to run `npx prisma migrate deploy && npm run prisma:seed`.
+3. `server` (unified production container built from `Dockerfile`) waiting on `migrate: service_completed_successfully`, exposing port `3000` with a `/api/ready` healthcheck.
+
+```bash
+# Build the unified production image
+docker build -t candycash:local .
+
+# Start PostgreSQL, run migrations + idempotent seed, and boot CandyCash on :3000
+docker compose up --build -d
+
+# Verify liveness, readiness, and non-root execution
+curl -fsS http://localhost:3000/api/health
+curl -fsS http://localhost:3000/api/ready
+docker exec candycash-server id
+
+# Tear down containers (add -v only if resetting local PostgreSQL data)
+docker compose down
+```
