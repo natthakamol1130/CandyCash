@@ -31,7 +31,7 @@
 | **Cloud Run Service** | `<prefix>` | Runs the unified Next.js + Prisma production container on port `3000` (`min-instances=0`, `max-instances=3`, `memory=512Mi`) |
 | **Runtime Service Account** | `<prefix>-runner@cpe-se-course-2026.iam.gserviceaccount.com` | Least-privilege identity with `roles/cloudsql.client` and secret-level `roles/secretmanager.secretAccessor` |
 | **Deployer Service Account** | `<prefix>-deployer@cpe-se-course-2026.iam.gserviceaccount.com` | Keyless GitHub Actions identity authenticated via Workload Identity Federation (WIF) |
-| **Secret Manager Secrets** | `<prefix>-database-url`, `<prefix>-admin-password`, `<prefix>-demo-password` | Stores sensitive runtime connection strings and initial seeded credentials outside Git |
+| **Secret Manager Secrets** | `<prefix>-database-url`, `<prefix>-app-secret-1`, `<prefix>-admin-password`, `<prefix>-demo-password` | Stores sensitive runtime connection strings, optional JWT signing key (`JWT_SECRET`, falls back to `DATABASE_URL` if unset), and initial seeded credentials outside Git |
 
 ### 2.3 Cost Control & Safety Guardrails
 1. **Scale-to-Zero Compute:** Cloud Run service is configured with `--min-instances 0` and `--max-instances 3` so idle periods incur zero compute instance charges.
@@ -46,3 +46,50 @@
 - **Differences from Reference Starter Kit (`TokTickIT`):**
   - Instead of separate `client/` (Vite + nginx) and `server/` (Express) directories, **CandyCash** uses a unified Next.js 14 full-stack architecture where both the web UI and `/api/*` endpoints are served from the same Node.js process on port `3000`.
   - All database schema migrations and non-destructive seeding use Prisma ORM (`npx prisma migrate deploy && npm run prisma:seed`).
+
+---
+
+## 4. Environment Variables & Secret Configuration (L5-02 / R-02)
+
+All configuration values are read from environment variables and documented with placeholders in `.env.example`. No real secret is ever committed to Git or baked into Docker images.
+
+| Variable | Purpose | Secret? | Source (Local vs. Cloud Run) |
+| :--- | :--- | :---: | :--- |
+| `DATABASE_URL` | PostgreSQL 16 connection string for Prisma ORM | **Yes** | Local `.env` / Cloud Run Secret Manager (`<prefix>-database-url`) |
+| `JWT_SECRET` | HS256 signing key for HTTP-only session cookies | **Yes** | Local `.env` / Cloud Run Secret Manager (`<prefix>-app-secret-1`); falls back to `DATABASE_URL` in production if unset |
+| `PORT` | HTTP server port (`0.0.0.0:$PORT`, default `3000`) | No | Local default `3000` / Injected automatically by Cloud Run |
+| `NODE_ENV` | Runtime mode (`development` or `production`) | No | Local `.env` / Cloud Run `--update-env-vars NODE_ENV=production` (never use `--set-env-vars` so portal-managed vars are not overwritten) |
+| `TZ` | Runtime timezone (`Asia/Bangkok`) | No | Cloud Run `--update-env-vars TZ=Asia/Bangkok` |
+| `ADMIN_PASSWORD` | Initial password for `admin@candycash.local` during seed | **Yes** | Local fallback / Cloud Run Job Secret Manager (`<prefix>-admin-password`) |
+| `SEED_DEMO_DATA` | Toggle demo users & sample wallets (`true`/`false`) | No | Local default `true` / Cloud Run Job env var (`false` unless `--demo`) |
+| `DEMO_USER_PASSWORD` | Initial password for demo accounts when `SEED_DEMO_DATA=true` | **Yes** | Local fallback / Cloud Run Job Secret Manager (`<prefix>-demo-password`) |
+
+---
+
+## 5. Six-Point Cloud-Readiness Verification (Episode 2.2)
+
+1. **No local file uploads:** CandyCash stores all financial records in PostgreSQL and writes nothing to the container filesystem.
+2. **Production-safe idempotent seed:** `prisma/seed.ts` uses non-destructive `upsert` operations and reads passwords from `ADMIN_PASSWORD` and `DEMO_USER_PASSWORD`.
+3. **No dev shortcuts in production:** `/login` disables default password pre-fill and hides the demo quick-fill buttons when `NODE_ENV=production`.
+4. **Stateless session persistence:** Signed HTTP-only JWT cookies (`jose` HS256) remain valid across container restarts and horizontal scaling.
+5. **Dynamic port binding:** Next.js binds to `0.0.0.0` and listens on `$PORT` (default `3000`).
+6. **Health & readiness probes:** `GET /api/health` (`200 OK`) and `GET /api/ready` (`SELECT 1` database check returning `200` or `503`) are implemented and allowed in `src/middleware.ts`.
+
+---
+
+## 6. Build, Test, Migrate & Seed Commands
+
+```bash
+# Install dependencies & generate Prisma client
+npm ci
+npx prisma generate
+
+# Apply PostgreSQL migrations & run idempotent seed
+npx prisma migrate deploy
+npm run prisma:seed
+
+# Run automated test suite (52 tests) & TypeScript / Next.js production build
+npm test
+npx tsc --noEmit
+npm run build
+```
