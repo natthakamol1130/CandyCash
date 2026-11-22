@@ -18,10 +18,11 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
+  const isProd = process.env.NODE_ENV === 'production';
   const [lang, setLang] = useState<Language>('en');
   const [theme, setTheme] = useState<ThemeMode>('light');
-  const [email, setEmail] = useState('user1@candycash.local');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState(isProd ? '' : 'user1@candycash.local');
+  const [password, setPassword] = useState(isProd ? '' : 'password123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -84,6 +85,7 @@ export default function LoginPage() {
   };
 
   const fillAccount = (accountEmail: string) => {
+    if (isProd) return;
     setEmail(accountEmail);
     setPassword('password123');
     setError('');
@@ -298,7 +300,8 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick-fill Account Selector */}
+          {/* Quick-fill Account Selector (Development Only — hidden in production) */}
+          {!isProd && (
           <div className="mt-6 pt-5 border-t border-pink-50 dark:border-slate-800 space-y-2">
             <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 text-center flex items-center justify-center gap-1">
               <LollipopIcon className="w-3.5 h-3.5" size={14} />
@@ -338,6 +341,7 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+          )}
         </div>
 
         {/* Right Cute Floating Candy Cluster (No white card container) */}

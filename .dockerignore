@@ -1,0 +1,39 @@
+# Dependencies & build outputs
+**/node_modules
+.next
+out
+build
+dist
+*.tsbuildinfo
+
+# Secrets & environment files (must never enter Docker build context)
+**/.env
+.env.*
+gha-creds-*.json
+*.pem
+*.key
+
+# Local databases & logs
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.log
+npm-debug.log*
+
+# Version control, CI, tests, documentation & reference artifacts
+.git
+.gitignore
+.github
+tests
+vitest.config.ts
+test-results
+playwright-report
+docs
+*.pdf
+*.md
+*_Design_Preview.html
+toktickit-lab5-starter
+docker-compose.yml
+.DS_Store
+Thumbs.db
