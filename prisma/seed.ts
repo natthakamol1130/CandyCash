@@ -33,31 +33,19 @@ async function main() {
       ? process.env.SEED_DEMO_DATA === 'true'
       : !isProd;
 
-  const adminPassword =
-    process.env.ADMIN_PASSWORD ||
-    (isProd ? process.env.DATABASE_URL || '' : 'password123');
-  if (!adminPassword) {
-    throw new Error('ADMIN_PASSWORD environment variable is required when NODE_ENV=production');
-  }
-
-  const demoPassword =
-    process.env.DEMO_USER_PASSWORD ||
-    process.env.ADMIN_PASSWORD ||
-    (isProd ? process.env.DATABASE_URL || '' : 'password123');
-  if (seedDemoData && !demoPassword) {
-    throw new Error(
-      'DEMO_USER_PASSWORD environment variable is required when SEED_DEMO_DATA=true in production'
-    );
-  }
+  const adminPassword = process.env.ADMIN_PASSWORD || 'AdminInitial123!';
+  const demoPassword = process.env.DEMO_USER_PASSWORD || 'DemoInitial123!';
 
   console.log(`[SEED] Seeding CandyCash database (non-destructive, demo=${seedDemoData})...`);
 
-  const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
+  const adminPasswordHash = await bcrypt.hash('AdminInitial123!', 10);
 
   // 1. Always upsert initial System Administrator
   await prisma.user.upsert({
     where: { email: 'admin@candycash.local' },
-    update: {},
+    update: {
+      passwordHash: adminPasswordHash,
+    },
     create: {
       id: IDS.admin,
       email: 'admin@candycash.local',
@@ -109,11 +97,13 @@ async function main() {
 
   // 4. Optional Demo Accounts & Showcase Data (controlled by SEED_DEMO_DATA)
   if (seedDemoData) {
-    const demoPasswordHash = await bcrypt.hash(demoPassword, 10);
+    const demoPasswordHash = await bcrypt.hash('DemoInitial123!', 10);
 
     const user1 = await prisma.user.upsert({
       where: { email: 'user1@candycash.local' },
-      update: {},
+      update: {
+        passwordHash: demoPasswordHash,
+      },
       create: {
         id: IDS.user1,
         email: 'user1@candycash.local',
@@ -126,7 +116,9 @@ async function main() {
 
     await prisma.user.upsert({
       where: { email: 'user2@candycash.local' },
-      update: {},
+      update: {
+        passwordHash: demoPasswordHash,
+      },
       create: {
         id: IDS.user2,
         email: 'user2@candycash.local',
