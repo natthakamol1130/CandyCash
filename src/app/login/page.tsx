@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
 import { Language, translations } from '@/lib/i18n';
 import {
   CandyIcon,
@@ -21,6 +21,8 @@ export default function LoginPage() {
   const isProd = process.env.NODE_ENV === 'production';
   const [lang, setLang] = useState<Language>('en');
   const [theme, setTheme] = useState<ThemeMode>('light');
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState(isProd ? '' : 'user1@candycash.local');
   const [password, setPassword] = useState(isProd ? '' : 'password123');
   const [error, setError] = useState('');
@@ -65,15 +67,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const payload =
+        mode === 'register'
+          ? { email, password, fullName }
+          : { email, password };
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error || (mode === 'register' ? 'Registration failed' : 'Login failed'));
       }
 
       router.push('/dashboard');
@@ -243,9 +251,44 @@ export default function LoginPage() {
               {t.sweetBadge} • Release 2
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-              {t.loginTitle} <span className="text-pink-500 font-extrabold">{t.brandName}</span>
+              {mode === 'register' ? t.registerTitle : t.loginTitle}{' '}
+              <span className="text-pink-500 font-extrabold">{t.brandName}</span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1 font-normal">{t.loginSubtitle}</p>
+            <p className="text-xs text-slate-400 mt-1 font-normal">
+              {mode === 'register' ? t.registerSubtitle : t.loginSubtitle}
+            </p>
+          </div>
+
+          {/* Mode Switcher: Sign In / Sign Up */}
+          <div className="grid grid-cols-2 gap-1.5 p-1 mb-5 rounded-2xl bg-pink-50/80 dark:bg-slate-800/80 border border-pink-100 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setError('');
+              }}
+              className={`py-2 rounded-xl text-xs font-semibold transition-all ${
+                mode === 'login'
+                  ? 'bg-white dark:bg-slate-900 text-pink-600 dark:text-pink-400 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              {t.signInTab}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('register');
+                setError('');
+              }}
+              className={`py-2 rounded-xl text-xs font-semibold transition-all ${
+                mode === 'register'
+                  ? 'bg-white dark:bg-slate-900 text-pink-600 dark:text-pink-400 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              {t.signUpTab}
+            </button>
           </div>
 
           {error && (
@@ -256,6 +299,23 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  {t.fullNameLabel}
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-pink-300 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder={t.fullNamePlaceholder}
+                    className="w-full rounded-2xl border border-pink-200/70 dark:border-slate-700 bg-pink-50/20 dark:bg-slate-800/60 pl-10 pr-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-pink-400 dark:focus:border-teal-400 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-pink-100/70 dark:focus:ring-teal-950 transition-all font-normal"
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
                 {t.emailLabel}
@@ -295,7 +355,13 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-pink-400 via-pink-400 to-rose-300 dark:from-pink-500 dark:to-teal-500 py-3 text-sm font-semibold text-white shadow-md shadow-pink-200 dark:shadow-slate-950 hover:from-pink-500 hover:to-rose-400 active:scale-[0.99] transition-all disabled:opacity-50"
             >
-              {loading ? t.signingIn : t.signInButton}
+              {loading
+                ? mode === 'register'
+                  ? t.signingUp
+                  : t.signingIn
+                : mode === 'register'
+                  ? t.signUpButton
+                  : t.signInButton}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

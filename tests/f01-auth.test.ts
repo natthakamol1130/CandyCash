@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { loginUser, verifySession, checkAdminAccess, checkUserAccess } from '../src/services/auth-service';
+import { loginUser, registerUser, verifySession, checkAdminAccess, checkUserAccess } from '../src/services/auth-service';
 import { POST as loginRoute } from '../src/app/api/auth/login/route';
+import { POST as registerRoute } from '../src/app/api/auth/register/route';
 import { POST as logoutRoute } from '../src/app/api/auth/logout/route';
 import { GET as meRoute } from '../src/app/api/auth/me/route';
 import { middleware } from '../src/middleware';
@@ -94,6 +95,38 @@ describe('F-01: Authentication & Role-Based Session Guard', () => {
 
       const cookieHeader = res.headers.get('set-cookie');
       expect(cookieHeader).toContain('candycash_session=;');
+    });
+
+    it('should register a new @gmail.com user with starter wallets and reject duplicate email', async () => {
+      const testEmail = `friendly.tester.${Date.now()}@gmail.com`;
+      const req = new NextRequest('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testEmail,
+          password: 'myfriendlypass',
+          fullName: 'Friendly Tester',
+        }),
+      });
+
+      const res = await registerRoute(req);
+      expect(res.status).toBe(201);
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.user.email).toBe(testEmail);
+      expect(json.user.role).toBe('USER');
+
+      const cookieHeader = res.headers.get('set-cookie');
+      expect(cookieHeader).toContain('candycash_session=');
+
+      const wallets = await prisma.wallet.findMany({ where: { ownerId: json.user.id } });
+      expect(wallets.length).toBeGreaterThanOrEqual(2);
+
+      // Duplicate registration should return 409 Conflict
+      await expect(registerUser(testEmail, 'anotherpass')).rejects.toThrow('already registered');
+
+      // Cleanup test user
+      await prisma.user.delete({ where: { id: json.user.id } });
     });
   });
 
